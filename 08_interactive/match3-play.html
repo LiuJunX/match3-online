@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>水晶海洋 · 可交互三消</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',sans-serif;background:#080a0e;min-height:100vh;display:flex;justify-content:center;user-select:none}
+
+.scene{width:100%;max-width:520px;position:relative;overflow:hidden}
+
+/* 背景 */
+.bg{position:absolute;inset:0;
+  background:linear-gradient(180deg,#0e3d6e 0%,#1a5a8e 6%,#3088b8 14%,#58b0d4 22%,#88cce0 30%,#b0d8d0 38%,#c8d4b8 46%,#a0bc80 55%,#80aa60 62%,#5e9848 70%,#4c8c3a 80%,#3e7e30 90%,#347028 100%)}
+.clouds{position:absolute;top:0;left:0;right:0;height:34%;pointer-events:none;z-index:1}
+.cloud{position:absolute;background:rgba(255,255,255,.4);border-radius:50%;filter:blur(7px)}
+.horizon{position:absolute;top:34%;left:0;right:0;height:6%;z-index:1;
+  background:linear-gradient(180deg,transparent,rgba(220,210,180,.12),rgba(240,230,200,.08),transparent)}
+.far-hills{position:absolute;top:42%;left:0;right:0;height:20%;z-index:1;overflow:hidden}
+.fh{position:absolute;bottom:0;border-radius:50% 50% 0 0;opacity:.3}
+.garden-layer{position:absolute;bottom:0;left:0;right:0;height:30%;z-index:1;overflow:hidden}
+.wall{position:absolute;top:6%;left:8%;right:8%;height:10px;
+  background:linear-gradient(180deg,#c4b49a,#a89878);border-radius:3px;
+  box-shadow:0 2px 4px rgba(0,0,0,.15)}
+.wall::before{content:'';position:absolute;top:-4px;left:-1%;right:-1%;height:5px;
+  background:linear-gradient(180deg,#d4c4aa,#bca88e);border-radius:3px}
+.sh{position:absolute;border-radius:50% 50% 46% 46%}
+.sh-l{background:radial-gradient(ellipse at 38% 33%,#6cc050,#4eaa3a,#38922c)}
+.sh-d{background:radial-gradient(ellipse at 38% 33%,#52a43e,#3c9030,#2a7a22)}
+.fl{position:absolute;width:5px;height:5px;border-radius:50%;opacity:.55}
+.sparkle{position:absolute;border-radius:50%;background:#fff;pointer-events:none;z-index:6;
+  animation:tw 2.5s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:.45;transform:scale(1)}}
+
+/* 棋盘 */
+.board-wrap{position:relative;z-index:5;padding:90px 4.5% 0}
+.board-frame{
+  background:linear-gradient(160deg,#D8B048,#C09838,#D0A840,#B89030);
+  border-radius:14px;padding:5px;
+  box-shadow:2px 4px 8px rgba(0,0,0,.2),4px 12px 24px rgba(0,0,0,.25),6px 24px 48px rgba(0,0,0,.15),
+    inset 0 2px 0 rgba(255,255,255,.18),inset 0 -2px 0 rgba(0,0,0,.2);
+  position:relative}
+.board-frame::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 20% 10%,rgba(255,255,255,.18) 0%,transparent 50%);
+  border-radius:14px;pointer-events:none}
+.board-grid{width:100%;background:linear-gradient(180deg,#C4CCE0,#BCC6DC);
+  border-radius:10px;display:grid;grid-template-columns:repeat(9,1fr);
+  gap:1px;padding:3px;box-shadow:inset 0 3px 6px rgba(0,0,0,.12)}
+.gc{display:flex;align-items:center;justify-content:center;border-radius:4px;
+  background:rgba(165,172,195,.3);aspect-ratio:1;overflow:visible;position:relative;
+  cursor:pointer;transition:background .15s}
+.gc svg{width:99%;height:99%;transition:transform .15s;filter:drop-shadow(1px 2px 1px rgba(0,0,0,.26));pointer-events:none}
+.gc:hover{background:rgba(165,172,195,.5)}
+.gc.selected{background:rgba(255,220,100,.4);box-shadow:inset 0 0 0 2px rgba(255,200,50,.6)}
+.gc.selected svg{transform:scale(1.12)}
+.gc.matching{animation:pop .35s ease-out forwards}
+.gc.falling{transition:none}
+
+@keyframes pop{
+  0%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.3);opacity:.5}
+  100%{transform:scale(0);opacity:0}
+}
+@keyframes drop{
+  from{transform:translateY(var(--drop-from))}
+  to{transform:translateY(0)}
+}
+
+/* HUD */
+.hud{position:relative;z-index:5;padding:0 4.5%;margin-top:6px}
+.hbar{display:flex;align-items:center;justify-content:space-between;padding:6px 10px}
+.badge{background:rgba(0,0,0,.25);color:#fff;font-size:11px;padding:3px 12px;
+  border-radius:20px;font-weight:700;backdrop-filter:blur(4px)}
+.score-wrap{color:rgba(255,255,255,.7);font-size:13px;font-weight:700}
+.score-wrap span{color:#FBBF24;font-size:16px}
+.moves-wrap{color:rgba(255,255,255,.55);font-size:12px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="scene">
+  <!-- 背景 -->
+  <div class="bg"></div>
+  <div class="clouds">
+    <div class="cloud" style="width:90px;height:26px;top:3%;left:0%"></div>
+    <div class="cloud" style="width:60px;height:20px;top:1%;left:35%"></div>
+    <div class="cloud" style="width:70px;height:22px;top:5%;right:2%"></div>
+    <div class="cloud" style="width:50px;height:18px;top:8%;right:25%"></div>
+    <div class="cloud" style="width:80px;height:20px;top:10%;left:15%"></div>
+  </div>
+  <div class="horizon"></div>
+  <div class="far-hills">
+    <div class="fh" style="width:35%;height:60%;left:-4%;background:#7a9a6a"></div>
+    <div class="fh" style="width:25%;height:45%;left:18%;background:#8aaa78"></div>
+    <div class="fh" style="width:30%;height:55%;right:-2%;background:#7a9868"></div>
+    <div class="fh" style="width:20%;height:40%;right:22%;background:#88a874"></div>
+  </div>
+  <div class="garden-layer">
+    <div class="wall"></div>
+    <div class="sh sh-d" style="width:48px;height:34px;bottom:52%;left:2%"></div>
+    <div class="sh sh-l" style="width:36px;height:26px;bottom:56%;left:13%"></div>
+    <div class="sh sh-l" style="width:54px;height:36px;bottom:38%;left:0%"></div>
+    <div class="sh sh-d" style="width:40px;height:28px;bottom:42%;left:12%"></div>
+    <div class="sh sh-d" style="width:60px;height:28px;bottom:22%;left:-1%"></div>
+    <div class="sh sh-l" style="width:44px;height:24px;bottom:26%;left:13%"></div>
+    <div class="sh sh-l" style="width:44px;height:32px;bottom:54%;right:3%"></div>
+    <div class="sh sh-d" style="width:34px;height:24px;bottom:58%;right:14%"></div>
+    <div class="sh sh-d" style="width:50px;height:34px;bottom:40%;right:1%"></div>
+    <div class="sh sh-l" style="width:38px;height:26px;bottom:44%;right:13%"></div>
+    <div class="fl" style="background:#F23C5A;bottom:50%;left:18%"></div>
+    <div class="fl" style="background:#FCB80C;bottom:38%;left:10%"></div>
+    <div class="fl" style="background:#9A2AFC;bottom:48%;right:17%"></div>
+    <div class="fl" style="background:#0BED7C;bottom:24%;left:20%"></div>
+  </div>
+  <div class="sparkle" style="width:3px;height:3px;top:8%;left:12%;animation-delay:0s"></div>
+  <div class="sparkle" style="width:2px;height:2px;top:15%;right:18%;animation-delay:.8s"></div>
+
+  <!-- 棋盘 -->
+  <div class="board-wrap">
+    <div class="board-frame">
+      <div class="board-grid" id="board"></div>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div class="hud">
+    <div class="hbar">
+      <div class="score-wrap">Score: <span id="score">0</span></div>
+      <div class="moves-wrap">Moves: <span id="moves">30</span></div>
+      <div class="badge">Level 1 ›</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── SVG 棋子 ──
+const FR = `<filter id="__ID__" x="-10%" y="-10%" width="120%" height="120%"><feMorphology operator="erode" radius="1.3" in="SourceAlpha" result="innerDk"/><feComposite operator="out" in="SourceAlpha" in2="innerDk" result="darkRim"/><feGaussianBlur in="darkRim" stdDeviation="0.9" result="softDark"/><feFlood flood-color="black" flood-opacity=".22" result="dkColor"/><feComposite operator="in" in="dkColor" in2="softDark" result="darkEdge"/><feMorphology operator="erode" radius="1.2" in="SourceAlpha" result="innerLt"/><feComposite operator="out" in="SourceAlpha" in2="innerLt" result="lightRim"/><feGaussianBlur in="lightRim" stdDeviation="1.5" result="softLight"/><feFlood flood-color="white" flood-opacity=".04" result="ltColor"/><feComposite operator="in" in="ltColor" in2="softLight" result="lightEdge"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="darkEdge"/><feMergeNode in="lightEdge"/></feMerge></filter>`;
+
+const PIECES = {
+starfish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="sf" cx="35%" cy="30%"><stop offset="0%" stop-color="#FC7E93"/><stop offset="65%" stop-color="#F23C5A"/><stop offset="100%" stop-color="#AD2239"/></radialGradient>${FR.replace(/__ID__/g,'frsf')}</defs><g filter="url(#frsf)"><path d="M0-41Q10-35 17-18Q34-17 44-9Q40 5 27 14Q32 33 27 42Q14 41 0 33Q-14 41-27 42Q-32 33-27 14Q-40 5-44-9Q-34-17-17-18Q-10-35 0-41Z" fill="url(#sf)"/><path d="M0-41Q-10-35-17-18Q-34-17-44-9Q-40 5-27 14L0 0Z" fill="rgba(255,255,255,.20)"/><ellipse cx="-12" cy="-15" rx="7" ry="9" fill="rgba(255,255,255,.28)" transform="rotate(-20 -12 -15)"/></g></svg>`,
+turtle: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="tu" cx="35%" cy="30%"><stop offset="0%" stop-color="#47EF9B"/><stop offset="65%" stop-color="#0BED7C"/><stop offset="100%" stop-color="#01A151"/></radialGradient>${FR.replace(/__ID__/g,'frtu')}</defs><g filter="url(#frtu)"><ellipse cx="0" cy="-30" rx="9" ry="11" fill="#01A151"/><ellipse cx="-36" cy="-5" rx="11" ry="8" fill="#01A151" transform="rotate(-25 -36 -5)"/><ellipse cx="36" cy="-5" rx="11" ry="8" fill="#01A151" transform="rotate(25 36 -5)"/><ellipse cx="-28" cy="32" rx="9" ry="8" fill="#01A151" transform="rotate(35 -28 32)"/><ellipse cx="28" cy="32" rx="9" ry="8" fill="#01A151" transform="rotate(-35 28 32)"/><ellipse cx="0" cy="5" rx="34" ry="29" fill="url(#tu)"/><ellipse cx="0" cy="5" rx="22" ry="18" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/><circle cx="-10" cy="-3" r="6" fill="rgba(0,0,0,.08)"/><circle cx="10" cy="-1" r="6" fill="rgba(0,0,0,.08)"/><circle cx="0" cy="12" r="6.5" fill="rgba(0,0,0,.08)"/><ellipse cx="-10" cy="-7" rx="6" ry="8" fill="rgba(255,255,255,.24)" transform="rotate(-15 -10 -7)"/></g></svg>`,
+shell: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="sh" cx="35%" cy="25%"><stop offset="0%" stop-color="#FFCC4C"/><stop offset="65%" stop-color="#FCB80C"/><stop offset="100%" stop-color="#AB7B01"/></radialGradient>${FR.replace(/__ID__/g,'frsh')}</defs><g filter="url(#frsh)"><path d="M0-42C-9-40-30-27-37-8C-39 10-30 27-17 36C-6 42 6 42 17 36C30 27 39 10 37-8C30-27 9-40 0-42Z" fill="url(#sh)"/><path d="M0-42Q-13 0-17 36" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/><path d="M0-42Q-22-5-33 20" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.2"/><path d="M0-42Q5 0 6 40" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/><path d="M0-42Q18-5 31 17" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.2"/><ellipse cx="-11" cy="-20" rx="6" ry="11" fill="rgba(255,255,255,.2)" transform="rotate(-10 -11 -20)"/></g></svg>`,
+jellyfish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="jf" cx="35%" cy="30%"><stop offset="0%" stop-color="#B96BFF"/><stop offset="65%" stop-color="#9A2AFC"/><stop offset="100%" stop-color="#6516AB"/></radialGradient>${FR.replace(/__ID__/g,'frjf')}</defs><g filter="url(#frjf)"><path d="M-40 6Q-42-12-32-26Q-18-38 0-40Q18-38 32-26Q42-12 40 6Q22 12 0 8Q-22 12-40 6Z" fill="url(#jf)"/><ellipse cx="-14" cy="-20" rx="8" ry="10" fill="rgba(255,255,255,.2)" transform="rotate(-12 -14 -20)"/><path d="M-24 8Q-30 16-22 22Q-18 26-22 30" fill="none" stroke="#AE57F9" stroke-width="5.5" stroke-linecap="round" opacity=".8"/><path d="M-8 10Q-12 20-6 26Q-2 30-5 34" fill="none" stroke="#AE57F9" stroke-width="5" stroke-linecap="round" opacity=".7"/><path d="M12 9Q16 18 10 24Q6 28 9 32" fill="none" stroke="#AE57F9" stroke-width="5.5" stroke-linecap="round" opacity=".8"/><path d="M26 7Q32 14 24 20Q20 24 24 28" fill="none" stroke="#AE57F9" stroke-width="4.5" stroke-linecap="round" opacity=".65"/><circle cx="-12" cy="-12" r="4.5" fill="rgba(255,255,255,.6)"/><circle cx="12" cy="-12" r="4.5" fill="rgba(255,255,255,.6)"/><circle cx="-11" cy="-12.5" r="2.2" fill="#4818A0"/><circle cx="13" cy="-12.5" r="2.2" fill="#4818A0"/></g></svg>`,
+fish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="fi" cx="38%" cy="32%"><stop offset="0%" stop-color="#51ABFF"/><stop offset="65%" stop-color="#118AFC"/><stop offset="100%" stop-color="#055BAB"/></radialGradient>${FR.replace(/__ID__/g,'frfi')}</defs><g filter="url(#frfi)"><path d="M-11 18Q-20 29-24 42Q-9 36 0 38Q9 36 24 42Q20 29 11 18Z" fill="#055BAB"/><path d="M-4-33Q0-46 4-33" fill="#055BAB"/><path d="M-33-6Q-44 5-35 16" fill="none" stroke="#055BAB" stroke-width="5.5" stroke-linecap="round"/><path d="M33-6Q44 5 35 16" fill="none" stroke="#055BAB" stroke-width="5.5" stroke-linecap="round"/><path d="M0-35C15-33 31-22 37-6C42 7 35 18 20 25C9 29 4 27 0 27C-4 27-9 29-20 25C-35 18-42 7-37-6C-31-22-15-33 0-35Z" fill="url(#fi)"/><ellipse cx="-11" cy="-18" rx="5.5" ry="8.5" fill="rgba(255,255,255,.28)" transform="rotate(-12 -11 -18)"/><circle cx="-11" cy="-12" r="5" fill="rgba(255,255,255,.65)"/><circle cx="11" cy="-12" r="5" fill="rgba(255,255,255,.65)"/><circle cx="-10" cy="-12.5" r="2.5" fill="#084070"/><circle cx="12" cy="-12.5" r="2.5" fill="#084070"/></g></svg>`
+};
+
+const TYPES = Object.keys(PIECES);
+const COLS = 9, ROWS = 9;
+let grid = [];        // grid[r][c] = type index (0-4), -1 = empty
+let selected = null;  // {r, c}
+let busy = false;
+let score = 0;
+let moves = 30;
+
+const boardEl = document.getElementById('board');
+const scoreEl = document.getElementById('score');
+const movesEl = document.getElementById('moves');
+
+// ── 初始化棋盘（无初始三连）──
+function init() {
+  grid = [];
+  for (let r = 0; r < ROWS; r++) {
+    grid[r] = [];
+    for (let c = 0; c < COLS; c++) {
+      let t;
+      do { t = Math.floor(Math.random() * TYPES.length); }
+      while ((c >= 2 && grid[r][c-1] === t && grid[r][c-2] === t) ||
+             (r >= 2 && grid[r-1][c] === t && grid[r-2][c] === t));
+      grid[r][c] = t;
+    }
+  }
+  render();
+}
+
+// ── 渲染 ──
+function render() {
+  boardEl.innerHTML = '';
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'gc';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      if (grid[r][c] >= 0) {
+        cell.innerHTML = PIECES[TYPES[grid[r][c]]];
+      }
+      if (selected && selected.r === r && selected.c === c) {
+        cell.classList.add('selected');
+      }
+      cell.addEventListener('click', () => onCellClick(r, c));
+      boardEl.appendChild(cell);
+    }
+  }
+}
+
+// ── 点击处理 ──
+function onCellClick(r, c) {
+  if (busy || moves <= 0) return;
+  if (grid[r][c] < 0) return;
+
+  if (!selected) {
+    selected = { r, c };
+    render();
+    return;
+  }
+
+  const dr = Math.abs(selected.r - r);
+  const dc = Math.abs(selected.c - c);
+
+  if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
+    // 相邻 → 尝试交换
+    trySwap(selected.r, selected.c, r, c);
+  } else {
+    // 不相邻 → 重新选择
+    selected = { r, c };
+    render();
+  }
+}
+
+// ── 交换 ──
+async function trySwap(r1, c1, r2, c2) {
+  busy = true;
+  selected = null;
+
+  // 交换
+  [grid[r1][c1], grid[r2][c2]] = [grid[r2][c2], grid[r1][c1]];
+  render();
+
+  const matches = findMatches();
+  if (matches.size === 0) {
+    // 无匹配 → 交换回来
+    await sleep(200);
+    [grid[r1][c1], grid[r2][c2]] = [grid[r2][c2], grid[r1][c1]];
+    render();
+    busy = false;
+    return;
+  }
+
+  moves--;
+  movesEl.textContent = moves;
+
+  // 级联消除
+  await processCascade();
+  busy = false;
+}
+
+// ── 查找所有匹配 ──
+function findMatches() {
+  const matched = new Set();
+
+  // 横向
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS - 2; c++) {
+      const t = grid[r][c];
+      if (t < 0) continue;
+      if (grid[r][c+1] === t && grid[r][c+2] === t) {
+        let end = c + 2;
+        while (end + 1 < COLS && grid[r][end+1] === t) end++;
+        for (let i = c; i <= end; i++) matched.add(r * COLS + i);
+      }
+    }
+  }
+
+  // 纵向
+  for (let c = 0; c < COLS; c++) {
+    for (let r = 0; r < ROWS - 2; r++) {
+      const t = grid[r][c];
+      if (t < 0) continue;
+      if (grid[r+1][c] === t && grid[r+2][c] === t) {
+        let end = r + 2;
+        while (end + 1 < ROWS && grid[end+1][c] === t) end++;
+        for (let i = r; i <= end; i++) matched.add(i * COLS + c);
+      }
+    }
+  }
+
+  return matched;
+}
+
+// ── 级联处理 ──
+async function processCascade() {
+  let matches = findMatches();
+  while (matches.size > 0) {
+    // 消除动画
+    score += matches.size * 10;
+    scoreEl.textContent = score;
+
+    // 标记消除
+    const cells = boardEl.children;
+    for (const idx of matches) {
+      cells[idx].classList.add('matching');
+    }
+    await sleep(350);
+
+    // 清除
+    for (const idx of matches) {
+      const r = Math.floor(idx / COLS);
+      const c = idx % COLS;
+      grid[r][c] = -1;
+    }
+
+    // 掉落
+    await doGravity();
+
+    // 填充
+    fillEmpty();
+    render();
+
+    await sleep(150);
+    matches = findMatches();
+  }
+}
+
+// ── 重力掉落 ──
+async function doGravity() {
+  for (let c = 0; c < COLS; c++) {
+    let writeRow = ROWS - 1;
+    for (let r = ROWS - 1; r >= 0; r--) {
+      if (grid[r][c] >= 0) {
+        if (r !== writeRow) {
+          grid[writeRow][c] = grid[r][c];
+          grid[r][c] = -1;
+        }
+        writeRow--;
+      }
+    }
+  }
+  render();
+  await sleep(200);
+}
+
+// ── 填充空位 ──
+function fillEmpty() {
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (grid[r][c] < 0) {
+        grid[r][c] = Math.floor(Math.random() * TYPES.length);
+      }
+    }
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── 启动 ──
+init();
+</script>
+</body>
+</html>
