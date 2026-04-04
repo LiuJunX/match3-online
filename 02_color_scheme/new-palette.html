@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新配色方案 — 水晶海洋</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',sans-serif;background:#0b0d10;color:#e0ddd6;min-height:100vh;overflow-x:hidden}
+
+.header{text-align:center;padding:44px 20px 12px}
+.header h1{font-size:26px;font-weight:700;letter-spacing:1px;background:linear-gradient(135deg,#FF7085,#2DD4BF,#FBBF24,#A78BFA);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header p{color:#666;font-size:13px;margin-top:6px;font-weight:300}
+
+.container{max-width:740px;margin:0 auto;padding:0 16px 60px}
+
+.section-title{font-size:17px;font-weight:700;margin:36px 0 6px;color:#eee;display:flex;align-items:center;gap:10px}
+.section-title .dot{width:8px;height:8px;border-radius:50%}
+.section-sub{font-size:12px;color:#555;margin-bottom:20px;line-height:1.6}
+
+.card{background:#12141a;border-radius:16px;padding:24px;margin-bottom:20px;border:1px solid #1e2028;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:-40%;left:-40%;width:180%;height:180%;background:radial-gradient(circle at 35% 35%,rgba(45,212,191,.03) 0%,transparent 55%);pointer-events:none}
+
+/* Swatch grid */
+.swatches{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.swatch{display:flex;flex-direction:column;align-items:center;gap:6px}
+.swatch-color{width:64px;height:64px;border-radius:14px;position:relative;overflow:hidden}
+.swatch-color .highlight{position:absolute;top:6px;left:6px;width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.3)}
+.swatch-color .shadow{position:absolute;bottom:0;right:0;width:100%;height:40%;background:linear-gradient(to top,rgba(0,0,0,.2),transparent);border-radius:0 0 14px 14px}
+.swatch-label{font-size:11px;color:#888}
+.swatch-hex{font-size:10px;color:#555;font-family:monospace}
+
+/* Game board */
+.board-outer{border-radius:16px;padding:6px;position:relative}
+.board-inner{border-radius:12px;padding:4px;display:grid;gap:3px;position:relative}
+.cell{border-radius:10px;aspect-ratio:1;position:relative;overflow:hidden;transition:transform .15s}
+.cell:hover{transform:scale(1.06);z-index:2}
+.cell .hl{position:absolute;top:4px;left:4px;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.35)}
+.cell .sh{position:absolute;bottom:0;right:0;width:100%;height:35%;background:linear-gradient(to top,rgba(0,0,0,.18),transparent)}
+
+/* Comparison */
+.compare-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.compare-label{font-size:12px;color:#666;text-align:center;margin-bottom:8px}
+
+/* Layer viz */
+.layer-bar{display:flex;align-items:center;gap:12px;margin:10px 0;padding:10px 14px;border-radius:10px;background:#16181e}
+.layer-swatch{width:40px;height:28px;border-radius:6px;flex-shrink:0}
+.layer-info{flex:1}
+.layer-name{font-size:13px;font-weight:500;color:#ccc}
+.layer-desc{font-size:11px;color:#555;margin-top:2px}
+.layer-hex{font-size:10px;color:#444;font-family:monospace}
+
+.arrow-down{text-align:center;font-size:16px;color:#333;margin:2px 0}
+
+/* Principle tag */
+.tag{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;margin:2px;border:1px solid #222}
+.tag-keep{color:#2DD4BF;border-color:#2DD4BF33}
+.tag-change{color:#FF7085;border-color:#FF708533}
+
+.note{background:#13151c;border-left:3px solid #2DD4BF;padding:14px 18px;border-radius:0 10px 10px 0;font-size:13px;line-height:1.8;color:#888;margin:16px 0}
+.note strong{color:#ccc;font-weight:500}
+
+.area-bar-wrap{margin:12px 0}
+.area-bar{height:32px;border-radius:8px;display:flex;overflow:hidden;margin:6px 0}
+.area-bar div{display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>水晶海洋 · 新配色方案</h1>
+  <p>保留原版设计原理，使用全新色彩体系</p>
+</div>
+
+<div class="container">
+
+  <!-- ======= Principle Tags ======= -->
+  <div style="text-align:center;margin-bottom:28px">
+    <span class="tag tag-keep">✓ 色轮均匀分布</span>
+    <span class="tag tag-keep">✓ 面积比 55/30/15</span>
+    <span class="tag tag-keep">✓ 冷暖对比</span>
+    <span class="tag tag-keep">✓ 四层纵深</span>
+    <span class="tag tag-change">✦ 全新色相</span>
+    <span class="tag tag-change">✦ 暖底冷元素</span>
+  </div>
+
+  <!-- ======= New Palette ======= -->
+  <div class="section-title"><span class="dot" style="background:#2DD4BF"></span>新色板</div>
+  <div class="section-sub">五个游戏元素 + 中性障碍色 + 网格底色，色轮均匀分布</div>
+
+  <div class="card">
+    <div class="swatches">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#FF7085"><div class="highlight"></div><div class="shadow"></div></div>
+        <div class="swatch-label">珊瑚粉</div>
+        <div class="swatch-hex">#FF7085</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#2DD4BF"><div class="highlight"></div><div class="shadow"></div></div>
+        <div class="swatch-label">碧绿</div>
+        <div class="swatch-hex">#2DD4BF</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#FBBF24"><div class="highlight"></div><div class="shadow"></div></div>
+        <div class="swatch-label">琥珀金</div>
+        <div class="swatch-hex">#FBBF24</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#A78BFA"><div class="highlight"></div><div class="shadow"></div></div>
+        <div class="swatch-label">薰衣紫</div>
+        <div class="swatch-hex">#A78BFA</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#38BDF8"><div class="highlight"></div><div class="shadow"></div></div>
+        <div class="swatch-label">天空蓝</div>
+        <div class="swatch-hex">#38BDF8</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#8B7A68;border:1.5px solid #A0896E"><div class="highlight" style="opacity:.2"></div><div class="shadow"></div></div>
+        <div class="swatch-label">砂岩 (障碍)</div>
+        <div class="swatch-hex">#8B7A68</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#D8CCC0"><div class="highlight" style="opacity:.15"></div></div>
+        <div class="swatch-label">暖灰 (底色)</div>
+        <div class="swatch-hex">#D8CCC0</div>
+      </div>
+    </div>
+
+    <svg width="100%" viewBox="0 0 600 220" style="margin-top:8px">
+      <!-- Color wheel -->
+      <circle cx="120" cy="115" r="80" fill="none" stroke="#222" stroke-width="1"/>
+      <circle cx="120" cy="35" r="11" fill="#FF7085"/><text x="120" y="22" text-anchor="middle" font-size="9" fill="#FF7085">珊瑚粉</text>
+      <circle cx="196" cy="72" r="11" fill="#FBBF24"/><text x="220" y="68" font-size="9" fill="#FBBF24">琥珀金</text>
+      <circle cx="196" cy="158" r="11" fill="#2DD4BF"/><text x="220" y="164" font-size="9" fill="#2DD4BF">碧绿</text>
+      <circle cx="120" cy="195" r="11" fill="#38BDF8"/><text x="120" y="214" text-anchor="middle" font-size="9" fill="#38BDF8">天空蓝</text>
+      <circle cx="44" cy="158" r="11" fill="#A78BFA"/><text x="22" y="164" text-anchor="end" font-size="9" fill="#A78BFA">薰衣紫</text>
+      <circle cx="44" cy="72" r="11" fill="#8B7A68"/><text x="22" y="68" text-anchor="end" font-size="9" fill="#A09080">砂岩</text>
+      <!-- Cross lines showing even distribution -->
+      <line x1="120" y1="35" x2="196" y2="158" stroke="#FF7085" stroke-width=".4" opacity=".35"/>
+      <line x1="196" y1="72" x2="44" y2="158" stroke="#FBBF24" stroke-width=".4" opacity=".35"/>
+      <line x1="196" y1="158" x2="44" y2="72" stroke="#2DD4BF" stroke-width=".4" opacity=".35"/>
+      <text x="120" y="118" text-anchor="middle" font-size="9" fill="#444">均匀分布</text>
+
+      <!-- Area ratio -->
+      <text x="280" y="30" font-size="12" fill="#aaa" font-weight="500">面积比（保持原版比例）</text>
+      <rect x="280" y="45" width="300" height="32" rx="7" fill="#8B7A68" opacity=".8"/>
+      <text x="430" y="66" text-anchor="middle" font-size="11" fill="#fff">砂岩障碍 ~55%</text>
+      <rect x="280" y="87" width="165" height="32" rx="7" opacity=".7">
+        <animate attributeName="fill" values="#FF7085;#2DD4BF;#FBBF24;#A78BFA;#38BDF8;#FF7085" dur="6s" repeatCount="indefinite"/>
+      </rect>
+      <text x="362" y="108" text-anchor="middle" font-size="11" fill="#fff">彩色元素 ~30%</text>
+      <rect x="280" y="129" width="82" height="32" rx="7" fill="#D8CCC0" opacity=".5"/>
+      <text x="321" y="150" text-anchor="middle" font-size="11" fill="#555">底色 ~15%</text>
+
+      <text x="280" y="190" font-size="11" fill="#666">原理不变：大面积中性色压底</text>
+      <text x="280" y="208" font-size="11" fill="#666">少量高饱和色制造跳跃感和稀缺感</text>
+    </svg>
+  </div>
+
+  <!-- ======= Four Layers ======= -->
+  <div class="section-title"><span class="dot" style="background:#FBBF24"></span>四层纵深</div>
+  <div class="section-sub">饱和度由远到近递增，形成空气透视感</div>
+
+  <div class="card">
+    <div class="layer-bar">
+      <div class="layer-swatch" style="background:#E8D5C4"></div>
+      <div class="layer-info">
+        <div class="layer-name">Layer 1 · 暖米色天空</div>
+        <div class="layer-desc">低饱和暖调，营造黄昏海洋氛围（对应原版天蓝）</div>
+        <div class="layer-hex">#E8D5C4</div>
+      </div>
+    </div>
+    <div class="arrow-down">↓</div>
+    <div class="layer-bar">
+      <div class="layer-swatch" style="background:#7AAFA5;border:1.5px solid #5D998F"></div>
+      <div class="layer-info">
+        <div class="layer-name">Layer 2 · 青铜绿边框</div>
+        <div class="layer-desc">冷调金属质感，替代原版暖金色（冷暖反转）</div>
+        <div class="layer-hex">#7AAFA5</div>
+      </div>
+    </div>
+    <div class="arrow-down">↓</div>
+    <div class="layer-bar">
+      <div class="layer-swatch" style="background:#D8CCC0"></div>
+      <div class="layer-info">
+        <div class="layer-name">Layer 3 · 暖灰网格底</div>
+        <div class="layer-desc">中性暖灰衬底，与偏冷的彩色元素形成冷暖对比</div>
+        <div class="layer-hex">#D8CCC0 / 网格线 #BFB3A6</div>
+      </div>
+    </div>
+    <div class="arrow-down">↓</div>
+    <div class="layer-bar" style="border:1px solid #2DD4BF22">
+      <div style="display:flex;gap:4px">
+        <div style="width:20px;height:28px;border-radius:5px;background:#FF7085"></div>
+        <div style="width:20px;height:28px;border-radius:5px;background:#2DD4BF"></div>
+        <div style="width:20px;height:28px;border-radius:5px;background:#FBBF24"></div>
+        <div style="width:20px;height:28px;border-radius:5px;background:#A78BFA"></div>
+        <div style="width:20px;height:28px;border-radius:5px;background:#38BDF8"></div>
+      </div>
+      <div class="layer-info">
+        <div class="layer-name">Layer 4 · 高饱和游戏元素</div>
+        <div class="layer-desc">最近、最亮、最吸引注意力的一层</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>关键变化：</strong>原版是"冷底暖框"（蓝紫底色 + 金色边框），新方案反转为"暖底冷框"（暖灰底色 + 青铜绿边框）。<strong>冷暖对比的原理不变</strong>，但情绪从"阳光皇室"变成了"海洋水晶"。
+  </div>
+
+  <!-- ======= Side by Side Board ======= -->
+  <div class="section-title"><span class="dot" style="background:#FF7085"></span>棋盘效果对比</div>
+  <div class="section-sub">左：原版配色 · 右：新方案配色（悬停可放大单个格子）</div>
+
+  <div class="compare-row">
+    <!-- Original -->
+    <div>
+      <div class="compare-label">原版 · 阳光皇室</div>
+      <div class="board-outer" style="background:linear-gradient(135deg,#E8A825,#C4891A)" id="board-orig"></div>
+    </div>
+    <!-- New -->
+    <div>
+      <div class="compare-label">新版 · 水晶海洋</div>
+      <div class="board-outer" style="background:linear-gradient(135deg,#7AAFA5,#5D998F)" id="board-new"></div>
+    </div>
+  </div>
+
+  <!-- ======= Full Size New Board ======= -->
+  <div class="section-title" style="margin-top:36px"><span class="dot" style="background:#A78BFA"></span>新方案完整棋盘</div>
+  <div class="section-sub">完整9×8网格，含障碍区和彩色区的面积比例还原</div>
+
+  <div class="card" style="padding:12px;background:#E8D5C4">
+    <div class="board-outer" style="background:linear-gradient(145deg,#7AAFA5,#5D998F);padding:7px;border-radius:14px">
+      <div id="board-full" class="board-inner" style="background:#D8CCC0;grid-template-columns:repeat(9,1fr);border-radius:10px;padding:5px;gap:4px"></div>
+    </div>
+  </div>
+
+  <div class="note" style="border-left-color:#A78BFA">
+    <strong>设计原理完全保留：</strong><br>
+    ✓ 色轮均匀分布 — 五色等距，辨识度高<br>
+    ✓ 面积比 55/30/15 — 大面积砂岩压底，彩色跳跃<br>
+    ✓ 冷暖对比 — 暖灰底色 vs 偏冷彩色元素<br>
+    ✓ 四层纵深 — 饱和度由远到近递增<br>
+    ✓ 统一光影 — 左上高光 + 右下暗面<br>
+    ✦ 全新情绪 — 从"阳光皇室"变为"黄昏海洋"
+  </div>
+
+</div>
+
+<script>
+const origColors = ['#E8372C','#F5C842','#3DBF3D','#3B7DD8'];
+const origObstacle = '#A0722C';
+const origBg = '#B8C6E0';
+
+const newColors = ['#FF7085','#2DD4BF','#FBBF24','#A78BFA','#38BDF8'];
+const newObstacle = '#8B7A68';
+const newBg = '#D8CCC0';
+
+function makeCell(color, isObstacle) {
+  const d = document.createElement('div');
+  d.className = 'cell';
+  d.style.background = color;
+  if (!isObstacle) {
+    d.innerHTML = '<div class="hl"></div><div class="sh"></div>';
+  } else {
+    d.innerHTML = '<div class="hl" style="opacity:.15"></div><div class="sh" style="opacity:.12"></div>';
+    d.style.border = '1px solid rgba(255,255,255,.08)';
+  }
+  return d;
+}
+
+function buildSmallBoard(container, colors, obstacle, bg, cols, rows) {
+  const inner = document.createElement('div');
+  inner.className = 'board-inner';
+  inner.style.background = bg;
+  inner.style.gridTemplateColumns = `repeat(${cols},1fr)`;
+  inner.style.gap = '2px';
+  inner.style.padding = '3px';
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const isObs = r >= 2 && c < 4;
+      if (isObs) {
+        inner.appendChild(makeCell(obstacle, true));
+      } else {
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        inner.appendChild(makeCell(color, false));
+      }
+    }
+  }
+  container.appendChild(inner);
+}
+
+buildSmallBoard(document.getElementById('board-orig'), origColors, origObstacle, origBg, 7, 6);
+buildSmallBoard(document.getElementById('board-new'), newColors, newObstacle, newBg, 7, 6);
+
+// Full board
+const full = document.getElementById('board-full');
+const fullRows = 8, fullCols = 9;
+const layout = [];
+for (let r = 0; r < fullRows; r++) {
+  for (let c = 0; c < fullCols; c++) {
+    const isObs = (r >= 3 && c < 6) || (r >= 2 && c < 4);
+    if (isObs) {
+      full.appendChild(makeCell(newObstacle, true));
+    } else {
+      const color = newColors[Math.floor(Math.random() * newColors.length)];
+      full.appendChild(makeCell(color, false));
+    }
+  }
+}
+</script>
+</body>
+</html>

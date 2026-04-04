@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三消游戏界面设计原理分析</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  background: #0e0e12;
+  color: #e8e6e0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.header {
+  text-align: center;
+  padding: 48px 20px 32px;
+  position: relative;
+}
+.header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #F5C842, #E8372C, #3B7DD8, #3DBF3D);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.header p {
+  color: #888;
+  font-size: 14px;
+  margin-top: 8px;
+  font-weight: 300;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 16px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+.tab {
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all .3s;
+  background: #1a1a22;
+  color: #777;
+  font-family: inherit;
+}
+.tab:hover { background: #22222e; color: #aaa; }
+.tab.active {
+  background: linear-gradient(135deg, #2a2a3a, #1e1e2e);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(100,100,255,.08);
+}
+
+/* Panels */
+.panel { display: none; max-width: 720px; margin: 0 auto; padding: 0 20px 60px; }
+.panel.active { display: block; animation: fadeUp .4s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+.panel-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #f0efe8;
+}
+.panel-sub {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+/* SVG canvas area */
+.canvas-wrap {
+  background: #141418;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #222;
+  position: relative;
+  overflow: hidden;
+}
+.canvas-wrap::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 30% 30%, rgba(59,125,216,.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.note {
+  background: #16161e;
+  border-left: 3px solid #3B7DD8;
+  padding: 14px 18px;
+  border-radius: 0 10px 10px 0;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #aaa;
+  margin-bottom: 20px;
+}
+.note strong { color: #ddd; font-weight: 500; }
+
+svg text { font-family: 'Noto Sans SC', sans-serif; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>三消游戏设计原理</h1>
+  <p>五个层次解构 Royal Match 风格界面的视觉密码</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="show(0)">构图层次</button>
+  <button class="tab" onclick="show(1)">配色体系</button>
+  <button class="tab" onclick="show(2)">光影原理</button>
+  <button class="tab" onclick="show(3)">视觉引导</button>
+  <button class="tab" onclick="show(4)">背景·边框·网格</button>
+</div>
+
+<!-- ========== Panel 0: Composition ========== -->
+<div class="panel active" id="p0">
+  <div class="panel-title">构图层次</div>
+  <div class="panel-sub">中心对称 + U形环抱 + 轻上重下</div>
+  <div class="canvas-wrap">
+    <svg width="100%" viewBox="0 0 680 520">
+      <!-- Sky -->
+      <rect x="0" y="0" width="680" height="520" rx="8" fill="#87CEEB" opacity=".06"/>
+      <!-- Ground -->
+      <rect x="0" y="380" width="680" height="140" fill="#4A8C3F" opacity=".08"/>
+      <!-- U path -->
+      <path d="M180 520 L180 420 Q180 385 215 385 L465 385 Q500 385 500 420 L500 520" fill="none" stroke="#C4933A" stroke-width="2.5" opacity=".25" stroke-dasharray="8 5"/>
+      <text x="340" y="508" text-anchor="middle" font-size="11" fill="#C4933A" opacity=".6">U 形花园道路 — 视线收拢</text>
+      <!-- Board outer frame -->
+      <rect x="115" y="32" width="450" height="340" rx="14" fill="none" stroke="#E8A825" stroke-width="2.5" opacity=".5"/>
+      <text x="340" y="24" text-anchor="middle" font-size="12" fill="#E8A825" opacity=".7" font-weight="500">金色外边框</text>
+      <!-- Board inner -->
+      <rect x="128" y="45" width="424" height="314" rx="8" fill="#8EA8D0" opacity=".1" stroke="#8EA8D0" stroke-width=".5" opacity=".3"/>
+      <!-- Grid hint -->
+      <g opacity=".08" stroke="#8EA8D0" stroke-width=".5">
+        <line x1="128" y1="85" x2="552" y2="85"/>
+        <line x1="128" y1="125" x2="552" y2="125"/>
+        <line x1="128" y1="165" x2="552" y2="165"/>
+        <line x1="128" y1="205" x2="552" y2="205"/>
+        <line x1="128" y1="245" x2="552" y2="245"/>
+        <line x1="128" y1="285" x2="552" y2="285"/>
+        <line x1="128" y1="325" x2="552" y2="325"/>
+        <line x1="181" y1="45" x2="181" y2="359"/>
+        <line x1="234" y1="45" x2="234" y2="359"/>
+        <line x1="287" y1="45" x2="287" y2="359"/>
+        <line x1="340" y1="45" x2="340" y2="359"/>
+        <line x1="393" y1="45" x2="393" y2="359"/>
+        <line x1="446" y1="45" x2="446" y2="359"/>
+        <line x1="499" y1="45" x2="499" y2="359"/>
+      </g>
+      <!-- Center axes -->
+      <line x1="340" y1="32" x2="340" y2="372" stroke="#E24B4A" stroke-width="1" stroke-dasharray="4 3" opacity=".35"/>
+      <line x1="115" y1="202" x2="565" y2="202" stroke="#E24B4A" stroke-width="1" stroke-dasharray="4 3" opacity=".35"/>
+      <text x="582" y="206" font-size="10" fill="#E24B4A" opacity=".6">中心轴</text>
+      <!-- Colorful zone -->
+      <rect x="134" y="50" width="412" height="110" rx="6" fill="#3B7DD8" opacity=".06" stroke="#3B7DD8" stroke-width="1" stroke-dasharray="5 3" opacity=".25"/>
+      <text x="340" y="112" text-anchor="middle" font-size="13" fill="#5A9DE8" opacity=".8" font-weight="500">彩色活跃区 — 高饱和 · 轻</text>
+      <!-- Brown zone -->
+      <rect x="134" y="185" width="290" height="168" rx="6" fill="#A0722C" opacity=".06" stroke="#A0722C" stroke-width="1" stroke-dasharray="5 3" opacity=".25"/>
+      <text x="279" y="276" text-anchor="middle" font-size="13" fill="#C49340" opacity=".8" font-weight="500">障碍沉稳区 — 低饱和 · 重</text>
+      <!-- Arrow -->
+      <defs><marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+      <line x1="85" y1="70" x2="85" y2="340" stroke="#888" stroke-width="1.2" marker-end="url(#a1)" opacity=".4"/>
+      <text x="74" y="210" text-anchor="middle" font-size="10" fill="#888" transform="rotate(-90 74 210)">视觉重量递增 ↓</text>
+    </svg>
+  </div>
+  <div class="note">
+    <strong>构图核心：</strong>棋盘居中占据绝大面积，U形花园路径从底部环抱棋盘，把视线自然收拢到中央。彩色区在上方（轻盈），棕色障碍在下方（厚重），形成<strong>稳定的"金字塔"重量分布</strong>。中心轴线对称，给人秩序感和安全感。
+  </div>
+</div>
+
+<!-- ========== Panel 1: Color System ========== -->
+<div class="panel" id="p1">
+  <div class="panel-title">配色体系</div>
+  <div class="panel-sub">高饱和六色 + 色轮均匀分布 + 面积节奏</div>
+  <div class="canvas-wrap">
+    <svg width="100%" viewBox="0 0 680 440">
+      <text x="40" y="28" font-size="13" fill="#ccc" font-weight="500">游戏元素色板</text>
+      <!-- Swatches -->
+      <g>
+        <rect x="40" y="45" width="80" height="80" rx="14" fill="#E8372C"/>
+        <text x="80" y="145" text-anchor="middle" font-size="11" fill="#999">红 方块</text>
+        <text x="80" y="160" text-anchor="middle" font-size="10" fill="#555">#E8372C</text>
+      </g>
+      <g>
+        <rect x="140" y="45" width="80" height="80" rx="14" fill="#F5C842"/>
+        <text x="180" y="145" text-anchor="middle" font-size="11" fill="#999">黄 皇冠</text>
+        <text x="180" y="160" text-anchor="middle" font-size="10" fill="#555">#F5C842</text>
+      </g>
+      <g>
+        <rect x="240" y="45" width="80" height="80" rx="14" fill="#3DBF3D"/>
+        <text x="280" y="145" text-anchor="middle" font-size="11" fill="#999">绿 树叶</text>
+        <text x="280" y="160" text-anchor="middle" font-size="10" fill="#555">#3DBF3D</text>
+      </g>
+      <g>
+        <rect x="340" y="45" width="80" height="80" rx="14" fill="#3B7DD8"/>
+        <text x="380" y="145" text-anchor="middle" font-size="11" fill="#999">蓝 盾牌</text>
+        <text x="380" y="160" text-anchor="middle" font-size="10" fill="#555">#3B7DD8</text>
+      </g>
+      <g>
+        <rect x="440" y="45" width="80" height="80" rx="14" fill="#A0722C" stroke="#C4933A" stroke-width="1"/>
+        <text x="480" y="145" text-anchor="middle" font-size="11" fill="#999">棕 木箱</text>
+        <text x="480" y="160" text-anchor="middle" font-size="10" fill="#555">#A0722C</text>
+      </g>
+      <g>
+        <rect x="540" y="45" width="80" height="80" rx="14" fill="#B0BCD8"/>
+        <text x="580" y="145" text-anchor="middle" font-size="11" fill="#999">蓝紫 底色</text>
+        <text x="580" y="160" text-anchor="middle" font-size="10" fill="#555">#B0BCD8</text>
+      </g>
+
+      <!-- Color wheel -->
+      <text x="40" y="200" font-size="13" fill="#ccc" font-weight="500">色轮分布</text>
+      <circle cx="180" cy="320" r="80" fill="none" stroke="#333" stroke-width="1"/>
+      <circle cx="180" cy="240" r="12" fill="#E8372C"/><text x="180" y="228" text-anchor="middle" font-size="10" fill="#E8372C">红</text>
+      <circle cx="249" cy="280" r="12" fill="#F5C842"/><text x="270" y="275" font-size="10" fill="#F5C842">黄</text>
+      <circle cx="249" cy="360" r="12" fill="#3DBF3D"/><text x="270" y="367" font-size="10" fill="#3DBF3D">绿</text>
+      <circle cx="180" cy="400" r="12" fill="#3B7DD8"/><text x="180" y="420" text-anchor="middle" font-size="10" fill="#3B7DD8">蓝</text>
+      <circle cx="111" cy="360" r="12" fill="#A0722C"/><text x="90" y="367" text-anchor="end" font-size="10" fill="#C49340">棕</text>
+      <circle cx="111" cy="280" r="12" fill="#B0BCD8"/><text x="90" y="275" text-anchor="end" font-size="10" fill="#B0BCD8">底</text>
+      <!-- Cross lines -->
+      <line x1="180" y1="240" x2="249" y2="360" stroke="#E8372C" stroke-width=".4" opacity=".4"/>
+      <line x1="249" y1="280" x2="180" y2="400" stroke="#F5C842" stroke-width=".4" opacity=".4"/>
+      <line x1="249" y1="360" x2="111" y2="280" stroke="#3DBF3D" stroke-width=".4" opacity=".4"/>
+      <text x="180" y="340" text-anchor="middle" font-size="10" fill="#666">均匀间隔</text>
+      <text x="180" y="355" text-anchor="middle" font-size="10" fill="#666">= 高辨识</text>
+
+      <!-- Area ratio bars -->
+      <text x="340" y="200" font-size="13" fill="#ccc" font-weight="500">面积比 — 大面积低彩度压底</text>
+      <rect x="340" y="220" width="300" height="36" rx="8" fill="#A0722C" opacity=".8"/>
+      <text x="490" y="243" text-anchor="middle" font-size="12" fill="#fff" opacity=".9">棕色障碍 ~55%</text>
+      <rect x="340" y="266" width="165" height="36" rx="8" fill="#3B7DD8" opacity=".6"/>
+      <text x="422" y="289" text-anchor="middle" font-size="12" fill="#fff" opacity=".9">彩色元素 ~30%</text>
+      <rect x="340" y="312" width="82" height="36" rx="8" fill="#B0BCD8" opacity=".4"/>
+      <text x="381" y="335" text-anchor="middle" font-size="12" fill="#333">底色 ~15%</text>
+
+      <text x="340" y="380" font-size="12" fill="#888">大面积低彩度（棕）让少量高饱和色</text>
+      <text x="340" y="400" font-size="12" fill="#888">更加跳跃、珍贵，制造"稀缺感"。</text>
+      <text x="340" y="425" font-size="11" fill="#555">→ 如果满屏彩色，视觉会非常疲劳</text>
+    </svg>
+  </div>
+  <div class="note">
+    <strong>配色核心：</strong>红黄绿蓝在色轮上等距分布，形成<strong>互补+三角色</strong>关系，辨识度极高。棕色（低饱和暖色）占据55%面积当"视觉锚点"，让30%的彩色糖果更加珍贵和跳跃。蓝紫底色是冷调中性色，与暖色糖果形成冷暖对比。
+  </div>
+</div>
+
+<!-- ========== Panel 2: Lighting ========== -->
+<div class="panel" id="p2">
+  <div class="panel-title">光影原理</div>
+  <div class="panel-sub">统一左上光源 + 体积感 + 玩具触感</div>
+  <div class="canvas-wrap">
+    <svg width="100%" viewBox="0 0 680 400">
+      <!-- Light source -->
+      <circle cx="80" cy="30" r="22" fill="#FFD54F" opacity=".4"/>
+      <circle cx="80" cy="30" r="14" fill="#FFE882" opacity=".6"/>
+      <text x="116" y="35" font-size="12" fill="#FFD54F" font-weight="500">光源方向：左上</text>
+      <line x1="95" y1="48" x2="180" y2="110" stroke="#FFD54F" stroke-width=".8" opacity=".2"/>
+      <line x1="95" y1="48" x2="350" y2="110" stroke="#FFD54F" stroke-width=".8" opacity=".15"/>
+      <line x1="95" y1="48" x2="520" y2="110" stroke="#FFD54F" stroke-width=".8" opacity=".1"/>
+
+      <!-- Red cube detail -->
+      <text x="145" y="100" text-anchor="middle" font-size="12" fill="#aaa" font-weight="500">红色方块</text>
+      <rect x="95" y="112" width="100" height="100" rx="20" fill="#AA2820"/>
+      <rect x="95" y="112" width="100" height="50" rx="20" fill="#E8473D" opacity=".55"/>
+      <rect x="95" y="112" width="50" height="100" rx="20" fill="#D84038" opacity=".3"/>
+      <circle cx="118" cy="135" r="10" fill="#fff" opacity=".3"/>
+      <circle cx="116" cy="133" r="5" fill="#fff" opacity=".45"/>
+      <!-- Label arrows -->
+      <line x1="112" y1="128" x2="50" y2="118" stroke="#FFD54F" stroke-width=".8" stroke-dasharray="3 2" opacity=".5"/>
+      <text x="20" y="115" font-size="10" fill="#FFD54F">高光</text>
+      <line x1="175" y1="200" x2="220" y2="220" stroke="#666" stroke-width=".8" stroke-dasharray="3 2" opacity=".5"/>
+      <text x="224" y="224" font-size="10" fill="#666">暗面</text>
+      <text x="145" y="238" text-anchor="middle" font-size="10" fill="#777">果冻质感</text>
+
+      <!-- Crown detail -->
+      <text x="380" y="100" text-anchor="middle" font-size="12" fill="#aaa" font-weight="500">黄色皇冠</text>
+      <path d="M330 205 L352 130 L375 175 L398 120 L420 205Z" fill="#B8891A"/>
+      <path d="M330 205 L352 130 L375 175 L375 205Z" fill="#F5D84E" opacity=".45"/>
+      <circle cx="356" cy="148" r="6" fill="#fff" opacity=".25"/>
+      <line x1="352" y1="140" x2="310" y2="125" stroke="#FFD54F" stroke-width=".8" stroke-dasharray="3 2" opacity=".5"/>
+      <text x="286" y="122" font-size="10" fill="#FFD54F">金属高光</text>
+      <text x="375" y="238" text-anchor="middle" font-size="10" fill="#777">金属光泽</text>
+
+      <!-- Shield detail -->
+      <text x="570" y="100" text-anchor="middle" font-size="12" fill="#aaa" font-weight="500">蓝色盾牌</text>
+      <path d="M530 120 L610 120 L610 190 L570 218 L530 190Z" fill="#2456A0"/>
+      <path d="M530 120 L570 120 L570 190 L530 190Z" fill="#4A8CE0" opacity=".45"/>
+      <circle cx="548" cy="140" r="6" fill="#fff" opacity=".25"/>
+      <text x="570" y="238" text-anchor="middle" font-size="10" fill="#777">统一光源方向</text>
+
+      <!-- Summary bar -->
+      <rect x="40" y="275" width="600" height="50" rx="10" fill="#1a1a22"/>
+      <circle cx="100" cy="300" r="8" fill="#fff" opacity=".5"/>
+      <text x="118" y="304" font-size="11" fill="#aaa">高光 (左上)</text>
+      <rect x="240" y="294" width="14" height="14" rx="3" fill="#888" opacity=".5"/>
+      <text x="262" y="305" font-size="11" fill="#aaa">中间调 (固有色)</text>
+      <rect x="420" y="294" width="14" height="14" rx="3" fill="#333"/>
+      <text x="442" y="305" font-size="11" fill="#aaa">暗面 (右下)</text>
+
+      <text x="340" y="360" text-anchor="middle" font-size="12" fill="#666">所有元素都遵循同一套光影规则</text>
+      <text x="340" y="380" text-anchor="middle" font-size="12" fill="#666">→ 视觉一致性 = 真实感 + 可信度</text>
+    </svg>
+  </div>
+  <div class="note">
+    <strong>光影核心：</strong>所有元素统一使用<strong>左上方光源</strong>。左上角有白色高光点，右下为暗面阴影。这种一致的光影赋予了平面图形强烈的3D体积感——红色像果冻、皇冠像金属、盾牌有光泽，产生<strong>"想要触摸和滑动"的玩具触感</strong>。
+  </div>
+</div>
+
+<!-- ========== Panel 3: Visual Guides ========== -->
+<div class="panel" id="p3">
+  <div class="panel-title">视觉引导线</div>
+  <div class="panel-sub">纵向收拢 + 横向前线 + 网格扫描</div>
+  <div class="canvas-wrap">
+    <svg width="100%" viewBox="0 0 680 480">
+      <!-- Board -->
+      <rect x="100" y="20" width="480" height="360" rx="10" fill="#8EA8D0" opacity=".06" stroke="#8EA8D0" stroke-width=".5" opacity=".2"/>
+      <!-- Colored blocks top -->
+      <g opacity=".65">
+        <rect x="115" y="32" width="42" height="42" rx="8" fill="#E8372C"/>
+        <rect x="163" y="32" width="42" height="42" rx="8" fill="#F5C842"/>
+        <rect x="211" y="32" width="42" height="42" rx="8" fill="#3DBF3D"/>
+        <rect x="259" y="32" width="42" height="42" rx="8" fill="#3B7DD8"/>
+        <rect x="307" y="32" width="42" height="42" rx="8" fill="#3DBF3D"/>
+        <rect x="355" y="32" width="42" height="42" rx="8" fill="#E8372C"/>
+        <rect x="403" y="32" width="42" height="42" rx="8" fill="#F5C842"/>
+        <rect x="451" y="32" width="42" height="42" rx="8" fill="#3B7DD8"/>
+        <rect x="499" y="32" width="42" height="42" rx="8" fill="#3DBF3D"/>
+
+        <rect x="115" y="80" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="163" y="80" width="42" height="42" rx="8" fill="#3B7DD8"/>
+        <rect x="211" y="80" width="42" height="42" rx="8" fill="#F5C842"/>
+        <rect x="259" y="80" width="42" height="42" rx="8" fill="#E8372C"/>
+        <rect x="307" y="80" width="42" height="42" rx="8" fill="#F5C842"/>
+        <rect x="355" y="80" width="42" height="42" rx="8" fill="#3B7DD8"/>
+        <rect x="403" y="80" width="42" height="42" rx="8" fill="#F5C842"/>
+        <rect x="451" y="80" width="42" height="42" rx="8" fill="#3B7DD8"/>
+        <rect x="499" y="80" width="42" height="42" rx="8" fill="#E8372C"/>
+      </g>
+      <!-- Frontier line -->
+      <line x1="100" y1="164" x2="580" y2="164" stroke="#E24B4A" stroke-width="2.5" stroke-dasharray="10 5" opacity=".7"/>
+      <rect x="240" y="148" width="200" height="24" rx="6" fill="#E24B4A" opacity=".15"/>
+      <text x="340" y="165" text-anchor="middle" font-size="12" fill="#E24B4A" font-weight="500">核心策略"前线"</text>
+      <!-- Brown blocks below -->
+      <g opacity=".5">
+        <rect x="115" y="176" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="163" y="176" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="211" y="176" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="259" y="176" width="42" height="42" rx="8" fill="#F5C842"/>
+        <rect x="307" y="176" width="42" height="42" rx="8" fill="#3B7DD8"/>
+        <rect x="355" y="176" width="42" height="42" rx="8" fill="#E8372C"/>
+        <rect x="403" y="176" width="42" height="42" rx="8" fill="#F5C842"/>
+        <rect x="451" y="176" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="499" y="176" width="42" height="42" rx="8" fill="#A0722C"/>
+
+        <rect x="115" y="224" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="163" y="224" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="211" y="224" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="259" y="224" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="307" y="224" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="355" y="224" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="403" y="224" width="42" height="42" rx="8" fill="#3DBF3D"/>
+        <rect x="451" y="224" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="499" y="224" width="42" height="42" rx="8" fill="#A0722C"/>
+
+        <rect x="115" y="272" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="163" y="272" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="211" y="272" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="259" y="272" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="307" y="272" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="355" y="272" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="403" y="272" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="451" y="272" width="42" height="42" rx="8" fill="#F5C842"/>
+        <rect x="499" y="272" width="42" height="42" rx="8" fill="#A0722C"/>
+
+        <rect x="115" y="320" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="163" y="320" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="211" y="320" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="259" y="320" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="307" y="320" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="355" y="320" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="403" y="320" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="451" y="320" width="42" height="42" rx="8" fill="#A0722C"/>
+        <rect x="499" y="320" width="42" height="42" rx="8" fill="#E8372C"/>
+      </g>
+      <!-- Road upward arrow -->
+      <path d="M340 470 L340 385" fill="none" stroke="#C49340" stroke-width="3" opacity=".5"/>
+      <path d="M300 470 Q300 430 330 400" fill="none" stroke="#C49340" stroke-width="1.5" opacity=".3"/>
+      <path d="M380 470 Q380 430 350 400" fill="none" stroke="#C49340" stroke-width="1.5" opacity=".3"/>
+      <defs><marker id="a3" viewBox="0 0 10 10" refX="5" refY="10" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 10L5 0L10 10" fill="none" stroke="#C49340" stroke-width="1.5"/></marker></defs>
+      <line x1="340" y1="470" x2="340" y2="390" stroke="#C49340" stroke-width="2.5" opacity=".5" marker-end="url(#a3)"/>
+      <text x="340" y="464" text-anchor="middle" font-size="11" fill="#C49340" opacity=".7">道路纵向引导</text>
+
+      <!-- Eye vertical scan -->
+      <defs><marker id="a4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="#5A9DE8" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+      <line x1="75" y1="40" x2="75" y2="350" stroke="#5A9DE8" stroke-width="1.5" opacity=".4" marker-end="url(#a4)"/>
+      <text x="62" y="200" text-anchor="middle" font-size="10" fill="#5A9DE8" opacity=".7" transform="rotate(-90 62 200)">视线纵向扫描</text>
+
+      <!-- Horizontal scan hints -->
+      <line x1="110" y1="53" x2="545" y2="53" stroke="#5A9DE8" stroke-width=".5" opacity=".15" stroke-dasharray="3 4"/>
+      <line x1="110" y1="101" x2="545" y2="101" stroke="#5A9DE8" stroke-width=".5" opacity=".15" stroke-dasharray="3 4"/>
+      <text x="600" y="57" font-size="9" fill="#5A9DE8" opacity=".5">横向扫描</text>
+    </svg>
+  </div>
+  <div class="note">
+    <strong>引导核心：</strong>三条引导系统——① <strong>纵向：</strong>底部道路向上指引到棋盘中心；② <strong>横向"前线"：</strong>彩色区与棕色区的不规则分界线，是可操作边界也是策略焦点；③ <strong>网格：</strong>行列结构本身就是最强的扫描引导，让玩家快速寻找匹配组合。
+  </div>
+</div>
+
+<!-- ========== Panel 4: BG / Border / Grid ========== -->
+<div class="panel" id="p4">
+  <div class="panel-title">背景 · 边框 · 网格</div>
+  <div class="panel-sub">四层色彩纵深 — 从远到近饱和度递增</div>
+  <div class="canvas-wrap">
+    <svg width="100%" viewBox="0 0 680 600">
+      <!-- Layer 1 -->
+      <text x="40" y="28" font-size="14" fill="#ddd" font-weight="700">Layer 1</text>
+      <text x="120" y="28" font-size="13" fill="#888">天空背景</text>
+      <rect x="40" y="42" width="600" height="70" rx="10" fill="#6CB4EE" opacity=".15" stroke="#6CB4EE" stroke-width=".5" opacity=".3"/>
+      <rect x="56" y="55" width="70" height="44" rx="8" fill="#6CB4EE"/>
+      <text x="91" y="82" text-anchor="middle" font-size="10" fill="#fff">#6CB4EE</text>
+      <text x="145" y="74" font-size="12" fill="#8CC8F0">低饱和天蓝 → 空间感、透气感</text>
+      <text x="145" y="92" font-size="11" fill="#556">与棋盘拉开前景-背景层次</text>
+
+      <!-- Layer 2 -->
+      <text x="40" y="142" font-size="14" fill="#ddd" font-weight="700">Layer 2</text>
+      <text x="120" y="142" font-size="13" fill="#888">金色外边框</text>
+      <rect x="40" y="156" width="600" height="70" rx="10" fill="#E8A825" opacity=".08" stroke="#E8A825" stroke-width=".5" opacity=".3"/>
+      <rect x="56" y="169" width="70" height="44" rx="8" fill="#E8A825" stroke="#C4891A" stroke-width="1.5"/>
+      <text x="91" y="196" text-anchor="middle" font-size="10" fill="#6B4400">#E8A825</text>
+      <rect x="140" y="169" width="44" height="44" rx="8" fill="#C4891A"/>
+      <text x="162" y="196" text-anchor="middle" font-size="10" fill="#fff">#C4891A</text>
+      <text x="200" y="188" font-size="12" fill="#E8A825">暖金色 → "皇家"主题 + 视觉框架</text>
+      <text x="200" y="206" font-size="11" fill="#556">呼应游戏皇冠元素，统一品牌感</text>
+
+      <!-- Layer 3 -->
+      <text x="40" y="256" font-size="14" fill="#ddd" font-weight="700">Layer 3</text>
+      <text x="120" y="256" font-size="13" fill="#888">网格底色</text>
+      <rect x="40" y="270" width="600" height="70" rx="10" fill="#8EA8D0" opacity=".08" stroke="#8EA8D0" stroke-width=".5" opacity=".3"/>
+      <rect x="56" y="283" width="70" height="44" rx="8" fill="#B8C6E0"/>
+      <text x="91" y="310" text-anchor="middle" font-size="10" fill="#3C5080">#B8C6E0</text>
+      <rect x="140" y="283" width="44" height="44" rx="8" fill="#9EAECF"/>
+      <text x="162" y="310" text-anchor="middle" font-size="10" fill="#2C3F6B">#9EAECF</text>
+      <text x="200" y="302" font-size="12" fill="#A0B4D8">冷调蓝紫灰 → 中性衬底</text>
+      <text x="200" y="320" font-size="11" fill="#556">与暖色元素形成冷暖对比，让糖果"浮起"</text>
+
+      <!-- Layer 4 -->
+      <text x="40" y="370" font-size="14" fill="#ddd" font-weight="700">Layer 4</text>
+      <text x="120" y="370" font-size="13" fill="#888">网格线</text>
+      <rect x="40" y="384" width="290" height="130" rx="10" fill="#B8C6E0" opacity=".1"/>
+      <g stroke="#6E82A8" stroke-width=".6" opacity=".35">
+        <line x1="96" y1="384" x2="96" y2="514"/>
+        <line x1="152" y1="384" x2="152" y2="514"/>
+        <line x1="208" y1="384" x2="208" y2="514"/>
+        <line x1="264" y1="384" x2="264" y2="514"/>
+        <line x1="40" y1="428" x2="330" y2="428"/>
+        <line x1="40" y1="472" x2="330" y2="472"/>
+      </g>
+      <rect x="50" y="392" width="40" height="40" rx="8" fill="#E8372C" opacity=".8"/>
+      <rect x="104" y="392" width="40" height="40" rx="8" fill="#F5C842" opacity=".8"/>
+      <rect x="160" y="392" width="40" height="40" rx="8" fill="#3DBF3D" opacity=".8"/>
+      <rect x="216" y="392" width="40" height="40" rx="8" fill="#3B7DD8" opacity=".8"/>
+      <rect x="272" y="392" width="40" height="40" rx="8" fill="#E8372C" opacity=".8"/>
+      <rect x="50" y="436" width="40" height="40" rx="8" fill="#A0722C" opacity=".8"/>
+      <rect x="104" y="436" width="40" height="40" rx="8" fill="#A0722C" opacity=".8"/>
+      <rect x="160" y="436" width="40" height="40" rx="8" fill="#F5C842" opacity=".8"/>
+      <rect x="216" y="436" width="40" height="40" rx="8" fill="#3DBF3D" opacity=".8"/>
+      <rect x="272" y="436" width="40" height="40" rx="8" fill="#3B7DD8" opacity=".8"/>
+      <rect x="50" y="480" width="40" height="40" rx="8" fill="#A0722C" opacity=".8"/>
+      <rect x="104" y="480" width="40" height="40" rx="8" fill="#A0722C" opacity=".8"/>
+      <rect x="160" y="480" width="40" height="40" rx="8" fill="#A0722C" opacity=".8"/>
+      <rect x="216" y="480" width="40" height="40" rx="8" fill="#A0722C" opacity=".8"/>
+      <rect x="272" y="480" width="40" height="40" rx="8" fill="#F5C842" opacity=".8"/>
+
+      <text x="350" y="410" font-size="12" fill="#7E94B8">网格线 #6E82A8</text>
+      <text x="350" y="432" font-size="11" fill="#666">比底色深 ~15%</text>
+      <text x="350" y="454" font-size="11" fill="#666">可见但不抢眼</text>
+      <text x="350" y="476" font-size="11" fill="#666">划分空间，不干扰元素识别</text>
+
+      <!-- Depth gradient summary -->
+      <text x="40" y="555" font-size="13" fill="#ccc" font-weight="500">纵深关系 — 饱和度由远到近递增</text>
+      <rect x="40" y="568" width="80" height="20" rx="4" fill="#6CB4EE" opacity=".4"/>
+      <text x="80" y="582" text-anchor="middle" font-size="9" fill="#fff">远·天空</text>
+      <text x="128" y="582" font-size="14" fill="#444">→</text>
+      <rect x="145" y="568" width="80" height="20" rx="4" fill="#E8A825" opacity=".5"/>
+      <text x="185" y="582" text-anchor="middle" font-size="9" fill="#6B4400">边框</text>
+      <text x="233" y="582" font-size="14" fill="#444">→</text>
+      <rect x="250" y="568" width="80" height="20" rx="4" fill="#B8C6E0" opacity=".5"/>
+      <text x="290" y="582" text-anchor="middle" font-size="9" fill="#3C5080">网格底</text>
+      <text x="338" y="582" font-size="14" fill="#444">→</text>
+      <rect x="355" y="568" width="40" height="20" rx="4" fill="#E8372C"/>
+      <rect x="400" y="568" width="40" height="20" rx="4" fill="#F5C842"/>
+      <rect x="445" y="568" width="40" height="20" rx="4" fill="#3DBF3D"/>
+      <rect x="490" y="568" width="40" height="20" rx="4" fill="#3B7DD8"/>
+      <text x="460" y="582" text-anchor="middle" font-size="9" fill="#fff">近·糖果</text>
+    </svg>
+  </div>
+  <div class="note">
+    <strong>层次核心：</strong>四层色彩由远到近——<strong>天蓝背景 → 金色边框 → 蓝紫网格底 → 高饱和糖果</strong>。饱和度逐层递增，形成类似"空气透视"的纵深感。网格线比底色仅深约15%，"隐而不显"——划分空间但绝不喧宾夺主。金色边框同时承担"视觉框架"和"品牌主题（Royal皇家）"的双重功能。
+  </div>
+</div>
+
+<script>
+function show(i) {
+  document.querySelectorAll('.panel').forEach((p,j) => { p.classList.toggle('active', j===i); });
+  document.querySelectorAll('.tab').forEach((t,j) => { t.classList.toggle('active', j===i); });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>水晶海洋 · 造型棋盘</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',sans-serif;background:#0b0d10;color:#e0ddd6;min-height:100vh}
+
+.header{text-align:center;padding:40px 20px 8px}
+.header h1{font-size:24px;font-weight:700;background:linear-gradient(135deg,#FF7085,#2DD4BF,#FBBF24,#A78BFA,#38BDF8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header p{color:#555;font-size:13px;margin-top:6px}
+
+.container{max-width:560px;margin:0 auto;padding:0 12px 60px}
+
+.section-title{font-size:15px;font-weight:700;margin:28px 0 6px;color:#eee}
+.section-sub{font-size:12px;color:#555;margin-bottom:16px;line-height:1.6}
+
+.note{background:#13151c;border-left:3px solid #2DD4BF;padding:12px 16px;border-radius:0 10px 10px 0;font-size:12px;line-height:1.8;color:#777;margin:16px 0}
+.note strong{color:#bbb;font-weight:500}
+
+/* Pieces showcase */
+.showcase{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.showcase-item{display:flex;flex-direction:column;align-items:center;gap:6px}
+.showcase-item svg{filter:drop-shadow(2px 3px 4px rgba(0,0,0,.35))}
+.showcase-label{font-size:11px;color:#888}
+
+/* Board */
+.board-scene{background:linear-gradient(180deg,#C8B8A4 0%,#E8D5C4 30%,#D4C8B4 100%);border-radius:18px;padding:10px;margin:20px 0;position:relative;overflow:hidden}
+.board-scene::before{content:'';position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(255,255,255,.08),transparent);pointer-events:none;border-radius:18px 18px 0 0}
+.board-frame{background:linear-gradient(145deg,#7AAFA5,#5D998F,#6BA09A);border-radius:14px;padding:5px;box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 2px 8px rgba(0,0,0,.3)}
+.board-grid{background:#D8CCC0;border-radius:10px;padding:4px;display:grid;gap:2px;box-shadow:inset 0 1px 3px rgba(0,0,0,.1)}
+.grid-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;border-radius:6px;background:rgba(190,178,164,.3)}
+.grid-cell svg{width:88%;height:88%;transition:transform .15s;filter:drop-shadow(1px 2px 2px rgba(0,0,0,.25))}
+.grid-cell:hover svg{transform:scale(1.1)}
+
+/* Obstacle cell */
+.grid-cell.obstacle{background:rgba(139,122,104,.45)}
+.obstacle-inner{width:82%;height:82%;border-radius:8px;background:linear-gradient(145deg,#A08E78,#8B7A68,#7A6A58);position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),1px 2px 3px rgba(0,0,0,.2)}
+.obstacle-inner::before{content:'';position:absolute;top:0;left:0;width:50%;height:50%;background:rgba(255,255,255,.06);border-radius:8px 0 0 0}
+.obstacle-inner::after{content:'';position:absolute;bottom:0;right:0;width:60%;height:40%;background:rgba(0,0,0,.1);border-radius:0 0 8px 0}
+.obs-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40%;height:40%;opacity:.25}
+
+/* Compare section */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+.compare-card{background:#12141a;border-radius:14px;padding:16px;border:1px solid #1e2028}
+.compare-title{font-size:12px;color:#666;text-align:center;margin-bottom:10px}
+.compare-pieces{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>水晶海洋 · 异形造型</h1>
+  <p>造型本身就是轮廓 — 不是方块里放图案</p>
+</div>
+
+<div class="container">
+
+  <div class="section-title">五个造型 — 轮廓即形态</div>
+  <div class="section-sub">每个游戏元素自身的外轮廓就是其造型，和参考图中的皇冠、盾牌、树叶一样</div>
+
+  <div class="showcase" id="showcase"></div>
+
+  <div class="note">
+    <strong>关键区别：</strong>造型的外边缘本身就是海星形/贝壳形/水母形，不是正方形里放一个小图标。整个"糖果"就是那个形状，带有3D高光和阴影，像一颗立体的果冻糖。
+  </div>
+
+  <!-- Comparison: wrong vs right -->
+  <div class="section-title">错误 vs 正确</div>
+  <div class="section-sub">左边是方块+图案（错误），右边是造型本身就是轮廓（正确）</div>
+  <div class="compare">
+    <div class="compare-card">
+      <div class="compare-title" style="color:#E24B4A">✗ 方块里放图案</div>
+      <div class="compare-pieces" id="wrong-way"></div>
+    </div>
+    <div class="compare-card">
+      <div class="compare-title" style="color:#2DD4BF">✓ 造型即轮廓</div>
+      <div class="compare-pieces" id="right-way"></div>
+    </div>
+  </div>
+
+  <!-- Full board -->
+  <div class="section-title">完整棋盘效果</div>
+  <div class="section-sub">9×8 网格，造型在网格底色上"浮起"，悬停放大查看细节</div>
+
+  <div class="board-scene">
+    <div class="board-frame">
+      <div class="board-grid" id="game-board" style="grid-template-columns:repeat(9,1fr)"></div>
+    </div>
+  </div>
+
+  <div class="note" style="border-left-color:#FBBF24">
+    <strong>视觉效果：</strong>每个造型像一颗3D果冻糖"坐"在网格上。左上高光、右下暗面、底部投影一致。造型之间的网格底色露出来，形成自然的间距。障碍方块保持朴素的石板风格，与彩色造型形成"有生命 vs 无生命"的反差。
+  </div>
+
+  <!-- Larger single pieces -->
+  <div class="section-title">单体放大 — 造型细节</div>
+  <div class="section-sub">每个造型的3D渲染细节：高光位、暗面、体积感</div>
+  <div class="showcase" id="large-showcase"></div>
+
+</div>
+
+<script>
+// Shape SVG generators - the OUTLINE of the piece IS the shape
+// Each returns an SVG where the entire visible form is the shape itself
+
+function starfish(size) {
+  const s = size || 52;
+  // 5-pointed starfish with puffy rounded arms
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}">
+    <defs>
+      <radialGradient id="sf-g" cx="35%" cy="30%">
+        <stop offset="0%" stop-color="#FFB0BB"/>
+        <stop offset="40%" stop-color="#FF7085"/>
+        <stop offset="100%" stop-color="#D44A60"/>
+      </radialGradient>
+    </defs>
+    <path d="M0-38C4-30 8-22 14-16C20-20 28-28 36-30C34-22 30-14 26-8C32-4 40 0 44 4C36 6 28 6 22 6C24 14 24 22 26 32C20 26 14 20 10 14C4 20-2 26-8 32C-4 22-2 14 0 6C-6 6-14 8-22 8C-16 2-10-2-4-8C-10-14-16-22-20-30C-12-26-6-20-2-16C2-22 2-30 0-38Z" fill="url(#sf-g)"/>
+    <path d="M0-38C-2-30-2-22-2-16C-6-20-12-26-20-30C-16-22-10-14-4-8C-10-2-16 2-22 8C-14 8-6 6 0 6C-2 14-4 22-8 32C-2 26 4 20 10 14C14 20 20 26 26 32C24 22 24 14 22 6" fill="rgba(0,0,0,.12)"/>
+    <path d="M0-38C4-30 8-22 14-16C20-20 28-28 36-30C34-22 30-14 26-8C32-4 40 0 44 4" fill="rgba(255,255,255,.15)"/>
+    <ellipse cx="-10" cy="-14" rx="6" ry="8" fill="rgba(255,255,255,.22)" transform="rotate(-20 -10 -14)"/>
+  </svg>`;
+}
+
+function turtle(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}">
+    <defs>
+      <radialGradient id="tu-g" cx="35%" cy="30%">
+        <stop offset="0%" stop-color="#6EECD8"/>
+        <stop offset="40%" stop-color="#2DD4BF"/>
+        <stop offset="100%" stop-color="#18A08A"/>
+      </radialGradient>
+    </defs>
+    <!-- flippers + head -->
+    <ellipse cx="0" cy="-32" rx="8" ry="10" fill="#28C4AE"/>
+    <ellipse cx="-34" cy="-10" rx="10" ry="7" fill="#28C4AE" transform="rotate(-25 -34 -10)"/>
+    <ellipse cx="34" cy="-10" rx="10" ry="7" fill="#28C4AE" transform="rotate(25 34 -10)"/>
+    <ellipse cx="-26" cy="24" rx="8" ry="6" fill="#28C4AE" transform="rotate(35 -26 24)"/>
+    <ellipse cx="26" cy="24" rx="8" ry="6" fill="#28C4AE" transform="rotate(-35 26 24)"/>
+    <!-- shell body -->
+    <ellipse rx="28" ry="24" fill="url(#tu-g)"/>
+    <ellipse rx="28" ry="24" fill="rgba(0,0,0,.1)" clip-path="inset(0 0 0 55%)"/>
+    <!-- shell pattern -->
+    <ellipse rx="18" ry="14" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/>
+    <circle cx="-8" cy="-8" r="5" fill="rgba(0,0,0,.08)"/>
+    <circle cx="8" cy="-6" r="5" fill="rgba(0,0,0,.08)"/>
+    <circle cx="0" cy="6" r="5.5" fill="rgba(0,0,0,.08)"/>
+    <circle cx="-12" cy="6" r="4" fill="rgba(0,0,0,.06)"/>
+    <circle cx="12" cy="6" r="4" fill="rgba(0,0,0,.06)"/>
+    <ellipse cx="-8" cy="-12" rx="5" ry="7" fill="rgba(255,255,255,.18)" transform="rotate(-15 -8 -12)"/>
+    <!-- eyes -->
+    <circle cx="-4" cy="-30" r="2.5" fill="#0D5C4E"/>
+    <circle cx="4" cy="-30" r="2.5" fill="#0D5C4E"/>
+    <circle cx="-3.5" cy="-30.5" r="1" fill="#fff" opacity=".5"/>
+    <circle cx="4.5" cy="-30.5" r="1" fill="#fff" opacity=".5"/>
+  </svg>`;
+}
+
+function shell(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}">
+    <defs>
+      <radialGradient id="sh-g" cx="35%" cy="25%">
+        <stop offset="0%" stop-color="#FFD866"/>
+        <stop offset="40%" stop-color="#FBBF24"/>
+        <stop offset="100%" stop-color="#C49010"/>
+      </radialGradient>
+    </defs>
+    <path d="M0-36C-8-34-28-22-34-4C-36 12-28 28-16 36C-6 42 6 42 16 36C28 28 36 12 34-4C28-22 8-34 0-36Z" fill="url(#sh-g)"/>
+    <path d="M0-36C-8-34-28-22-34-4C-36 12-28 28-16 36C-6 42 0 38 0 0Z" fill="rgba(0,0,0,.12)"/>
+    <!-- ridges -->
+    <path d="M0-36Q-12 0-16 36" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/>
+    <path d="M0-36Q-20-4-30 20" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.2"/>
+    <path d="M0-36Q4 0 6 38" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/>
+    <path d="M0-36Q16-4 28 16" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.2"/>
+    <path d="M0-36Q24-10 34-2" fill="none" stroke="rgba(0,0,0,.06)" stroke-width="1"/>
+    <!-- highlight -->
+    <ellipse cx="-10" cy="-16" rx="6" ry="10" fill="rgba(255,255,255,.2)" transform="rotate(-10 -10 -16)"/>
+    <circle cx="-6" cy="-24" r="3" fill="rgba(255,255,255,.15)"/>
+  </svg>`;
+}
+
+function jellyfish(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -54 100 108" width="${s}" height="${s}">
+    <defs>
+      <radialGradient id="jf-g" cx="35%" cy="30%">
+        <stop offset="0%" stop-color="#C8B0FF"/>
+        <stop offset="40%" stop-color="#A78BFA"/>
+        <stop offset="100%" stop-color="#7C5CD4"/>
+      </radialGradient>
+    </defs>
+    <!-- dome -->
+    <path d="M-30 4Q-32-18-24-30Q-14-42 0-44Q14-42 24-30Q32-18 30 4Q16 10 0 6Q-16 10-30 4Z" fill="url(#jf-g)"/>
+    <path d="M-30 4Q-32-18-24-30Q-14-42 0-44Q0-10-30 4Z" fill="rgba(0,0,0,.1)"/>
+    <ellipse cx="-10" cy="-22" rx="6" ry="9" fill="rgba(255,255,255,.2)" transform="rotate(-12 -10 -22)"/>
+    <!-- tentacles -->
+    <path d="M-18 6Q-24 22-16 34Q-10 42-14 50" fill="none" stroke="#B89EF8" stroke-width="3.5" stroke-linecap="round" opacity=".8"/>
+    <path d="M-6 8Q-10 26-4 38Q0 46-4 52" fill="none" stroke="#B89EF8" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+    <path d="M8 7Q12 24 6 36Q2 44 6 50" fill="none" stroke="#B89EF8" stroke-width="3.5" stroke-linecap="round" opacity=".8"/>
+    <path d="M20 5Q26 20 18 32Q14 40 18 48" fill="none" stroke="#B89EF8" stroke-width="2.5" stroke-linecap="round" opacity=".65"/>
+    <!-- eyes -->
+    <circle cx="-8" cy="-14" r="3.5" fill="rgba(255,255,255,.6)"/>
+    <circle cx="8" cy="-14" r="3.5" fill="rgba(255,255,255,.6)"/>
+    <circle cx="-7" cy="-14.5" r="1.8" fill="#5C3CAA"/>
+    <circle cx="9" cy="-14.5" r="1.8" fill="#5C3CAA"/>
+  </svg>`;
+}
+
+function drop(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -54 100 108" width="${s}" height="${s}">
+    <defs>
+      <radialGradient id="dr-g" cx="35%" cy="35%">
+        <stop offset="0%" stop-color="#78D4FF"/>
+        <stop offset="40%" stop-color="#38BDF8"/>
+        <stop offset="100%" stop-color="#1890D0"/>
+      </radialGradient>
+    </defs>
+    <path d="M0-44Q-6-32-22-8Q-34 10-32 24Q-28 36-18 42Q-8 48 0 48Q8 48 18 42Q28 36 32 24Q34 10 22-8Q6-32 0-44Z" fill="url(#dr-g)"/>
+    <path d="M0-44Q-6-32-22-8Q-34 10-32 24Q-28 36-18 42Q-8 48 0 48Q0 10 0-44Z" fill="rgba(0,0,0,.1)"/>
+    <ellipse cx="-10" cy="4" rx="5" ry="10" fill="rgba(255,255,255,.22)" transform="rotate(-12 -10 4)"/>
+    <circle cx="-6" cy="-10" r="3.5" fill="rgba(255,255,255,.18)"/>
+  </svg>`;
+}
+
+function obstacleSVG(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}">
+    <rect x="-36" y="-36" width="72" height="72" rx="12" fill="url(#ob-g)"/>
+    <defs>
+      <linearGradient id="ob-g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#A89478"/>
+        <stop offset="50%" stop-color="#8B7A68"/>
+        <stop offset="100%" stop-color="#6E604E"/>
+      </linearGradient>
+    </defs>
+    <rect x="-36" y="-36" width="36" height="36" rx="12" fill="rgba(255,255,255,.06)"/>
+    <rect x="0" y="0" width="36" height="36" rx="12" fill="rgba(0,0,0,.08)"/>
+    <!-- subtle shell icon embossed -->
+    <path d="M0-14Q-8-12-10 0Q-8 10 0 12Q8 10 10 0Q8-12 0-14Z" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1.5"/>
+    <line x1="0" y1="-14" x2="-4" y2="10" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+    <line x1="0" y1="-14" x2="4" y2="10" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+  </svg>`;
+}
+
+const pieces = [
+  { name:'海星', fn:starfish, color:'#FF7085' },
+  { name:'海龟', fn:turtle, color:'#2DD4BF' },
+  { name:'贝壳', fn:shell, color:'#FBBF24' },
+  { name:'水母', fn:jellyfish, color:'#A78BFA' },
+  { name:'水滴', fn:drop, color:'#38BDF8' },
+];
+
+// Showcase
+const showcase = document.getElementById('showcase');
+pieces.forEach(p => {
+  const d = document.createElement('div');
+  d.className = 'showcase-item';
+  d.innerHTML = p.fn(56) + `<div class="showcase-label">${p.name}</div>`;
+  showcase.appendChild(d);
+});
+
+// Large showcase
+const large = document.getElementById('large-showcase');
+pieces.forEach(p => {
+  const d = document.createElement('div');
+  d.className = 'showcase-item';
+  d.innerHTML = p.fn(90) + `<div class="showcase-label">${p.name}</div>`;
+  large.appendChild(d);
+});
+
+// Wrong way (squares with small icons)
+const wrong = document.getElementById('wrong-way');
+pieces.forEach(p => {
+  const d = document.createElement('div');
+  d.style.cssText = `width:48px;height:48px;border-radius:10px;background:${p.color};display:flex;align-items:center;justify-content:center;position:relative`;
+  // Small icon inside square
+  const inner = document.createElement('div');
+  inner.innerHTML = p.fn(26);
+  inner.style.cssText = 'opacity:.7;filter:brightness(1.2)';
+  d.appendChild(inner);
+  // highlight
+  const hl = document.createElement('div');
+  hl.style.cssText = 'position:absolute;top:4px;left:4px;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.3)';
+  d.appendChild(hl);
+  wrong.appendChild(d);
+});
+
+// Right way (shape IS the piece)
+const right = document.getElementById('right-way');
+pieces.forEach(p => {
+  const d = document.createElement('div');
+  d.className = 'showcase-item';
+  d.style.margin = '0';
+  d.innerHTML = p.fn(48);
+  d.querySelector('svg').style.filter = 'drop-shadow(1px 2px 3px rgba(0,0,0,.3))';
+  right.appendChild(d);
+});
+
+// Game board
+const board = document.getElementById('game-board');
+const ROWS = 8, COLS = 9;
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell';
+
+    const isObs = (r >= 3 && c < 5) || (r >= 2 && c < 3);
+    if (isObs) {
+      cell.classList.add('obstacle');
+      const inner = document.createElement('div');
+      inner.className = 'obstacle-inner';
+      // embossed icon
+      inner.innerHTML = '<svg class="obs-icon" viewBox="-50 -50 100 100"><path d="M0-14Q-8-12-10 0Q-8 10 0 12Q8 10 10 0Q8-12 0-14Z" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2"/></svg>';
+      cell.appendChild(inner);
+    } else {
+      const p = pieces[Math.floor(Math.random() * pieces.length)];
+      cell.innerHTML = p.fn();
+    }
+    board.appendChild(cell);
+  }
+}
+</script>
+</body>
+</html>

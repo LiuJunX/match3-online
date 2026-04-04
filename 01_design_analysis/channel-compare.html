@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H·S·V 单通道对比 — 参考作品 vs TypeOcean</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',sans-serif;background:#0a0c10;color:#e0ddd6;min-height:100vh}
+
+.header{text-align:center;padding:40px 20px 12px}
+.header h1{font-size:24px;font-weight:700;color:#eee;letter-spacing:1px}
+.header p{color:#555;font-size:13px;margin-top:6px;line-height:1.6}
+
+/* Tab bar */
+.tabs{display:flex;justify-content:center;gap:6px;padding:0 16px;margin:20px 0 28px;flex-wrap:wrap}
+.tab{padding:10px 22px;font-size:14px;font-weight:500;border:none;border-radius:100px;cursor:pointer;transition:all .3s;background:#14161e;color:#666;font-family:inherit}
+.tab:hover{background:#1c1e2a;color:#999}
+.tab.active{color:#fff;box-shadow:0 0 20px rgba(100,150,255,.1)}
+.tab[data-ch="orig"].active{background:linear-gradient(135deg,#2a2a3a,#1e1e2e)}
+.tab[data-ch="V"].active{background:linear-gradient(135deg,#333,#222)}
+.tab[data-ch="S"].active{background:linear-gradient(135deg,#1a3a2a,#122218)}
+.tab[data-ch="H"].active{background:linear-gradient(135deg,#3a1a2a,#281228)}
+
+/* Channel description */
+.ch-desc{text-align:center;font-size:13px;color:#555;margin-bottom:24px;line-height:1.8;max-width:680px;margin-left:auto;margin-right:auto;padding:0 16px}
+.ch-desc strong{color:#aaa;font-weight:500}
+
+/* Grid */
+.grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:12px;max-width:1100px;margin:0 auto;padding:0 16px 60px}
+@media(max-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.grid{grid-template-columns:repeat(2,1fr)}}
+
+.card{display:flex;flex-direction:column;align-items:center;gap:6px;background:#12141a;border-radius:14px;padding:10px 10px 14px;border:1px solid #1e2028;transition:border-color .3s}
+.card:hover{border-color:#333}
+.card.highlight{border-color:#38BDF8;box-shadow:0 0 20px rgba(56,189,248,.1)}
+.card img{width:100%;border-radius:8px;image-rendering:auto}
+.card-label{font-size:12px;color:#888;font-weight:500}
+.card-label.ours{color:#38BDF8}
+
+/* Insight boxes */
+.insight{max-width:1100px;margin:0 auto 24px;padding:0 16px}
+.insight-box{background:#13151c;border-radius:12px;padding:16px 20px;border-left:3px solid #38BDF8;margin-bottom:12px}
+.insight-box h3{font-size:14px;color:#ddd;font-weight:600;margin-bottom:6px}
+.insight-box p{font-size:12px;color:#777;line-height:1.8}
+.insight-box strong{color:#bbb;font-weight:500}
+
+.hide{display:none}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>H / S / V 单通道对比</h1>
+  <p>剥离颜色维度，逐一审视：只看亮暗？只看鲜灰？只看色相？<br>TypeOcean 标蓝框，直观对比差距</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-ch="orig" onclick="show('orig')">原图</button>
+  <button class="tab" data-ch="V" onclick="show('V')">明度 Value</button>
+  <button class="tab" data-ch="S" onclick="show('S')">饱和度 Saturation</button>
+  <button class="tab" data-ch="H" onclick="show('H')">色相 Hue</button>
+</div>
+
+<!-- orig -->
+<div class="ch-desc" id="desc-orig">
+  原始截图。注意整体色调、棋子与底板的对比度。
+</div>
+<div class="ch-desc hide" id="desc-V">
+  <strong>明度通道：</strong>白=亮，黑=暗。观察棋子和底板的亮暗差异。<br>
+  好的设计：棋子和底板之间有清晰的明暗分界 — 棋子"发光"浮出。<br>
+  问题信号：全员高亮（一片白），或棋子和底板灰度接近（糊在一起）。
+</div>
+<div class="ch-desc hide" id="desc-S">
+  <strong>饱和度通道：</strong>白=高饱和（鲜艳），黑=低饱和（灰）。<br>
+  好的设计：底板全黑（灰色），棋子区域清晰的白色亮块 — 饱和度制造的"跳出"效果。<br>
+  问题信号：某些棋子和底板一样暗（饱和度不足，沉下去了）。
+</div>
+<div class="ch-desc hide" id="desc-H">
+  <strong>色相通道：</strong>纯色相映射（灰色区域 = 无色相/低饱和）。<br>
+  好的设计：棋盘上色彩块分明，每种颜色边界清晰。<br>
+  问题信号：两种棋子色相太近，在小尺寸下混为一色。
+</div>
+
+<!-- Insights per channel -->
+<div class="insight" id="insight-orig"></div>
+<div class="insight hide" id="insight-V">
+  <div class="insight-box">
+    <h3>看什么</h3>
+    <p>对比 <strong>TypeOcean</strong> 和 <strong>Royal Match</strong> 的明度图 — Royal Match 底板明显偏暗（灰色），棋子更亮（白色），形成清晰的亮暗层次。TypeOcean 整体偏白，棋子和底板的灰度几乎一样，缺少层次。</p>
+  </div>
+</div>
+<div class="insight hide" id="insight-S">
+  <div class="insight-box">
+    <h3>看什么</h3>
+    <p>观察每款游戏的饱和度图 — 好的设计中，<strong>底板几乎全黑</strong>（零饱和），<strong>棋子区域是明亮的白块</strong>，像"探照灯"一样标记出可操作区域。TypeOcean 的水母和海星区域明显偏暗（饱和度低），和其他棋子不在同一亮度。</p>
+  </div>
+</div>
+<div class="insight hide" id="insight-H">
+  <div class="insight-box">
+    <h3>看什么</h3>
+    <p>观察 TypeOcean 的色相图 — <strong>海龟(绿松)和鱼(蓝)</strong>在色相图上非常接近，几乎同色。对比 Royal Match 的四色：红/黄/绿/蓝在色相图上清晰分离，不存在混淆。</p>
+  </div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const games = [
+  { id: 'typeocean', label: 'TypeOcean (ours)', ours: true },
+  { id: 'royal_match', label: 'Royal Match' },
+  { id: 'candy_crush', label: 'Candy Crush' },
+  { id: 'cookie_jam', label: 'Cookie Jam' },
+  { id: 'homescapes', label: 'Homescapes' },
+  { id: 'bejeweled', label: 'Bejeweled' },
+  { id: 'toon_blast', label: 'Toon Blast' },
+  { id: 'best_fiends', label: 'Best Fiends' },
+];
+
+let current = 'orig';
+
+function show(ch) {
+  current = ch;
+  // Update tabs
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.ch === ch);
+  });
+  // Update descriptions
+  ['orig','V','S','H'].forEach(c => {
+    document.getElementById('desc-' + c).classList.toggle('hide', c !== ch);
+    document.getElementById('insight-' + c).classList.toggle('hide', c !== ch);
+  });
+  // Update images
+  render();
+}
+
+function render() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  const suffix = current === 'orig' ? '_orig' : '_' + current;
+
+  games.forEach(g => {
+    const card = document.createElement('div');
+    card.className = 'card' + (g.ours ? ' highlight' : '');
+
+    const img = document.createElement('img');
+    img.src = 'channels/' + g.id + suffix + '.png';
+    img.alt = g.label + ' ' + current;
+    img.loading = 'lazy';
+
+    const label = document.createElement('div');
+    label.className = 'card-label' + (g.ours ? ' ours' : '');
+    label.textContent = g.label;
+
+    card.appendChild(img);
+    card.appendChild(label);
+    grid.appendChild(card);
+  });
+}
+
+render();
+</script>
+</body>
+</html>

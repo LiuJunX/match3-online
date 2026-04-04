@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>光影修正对比 D / E</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',sans-serif;background:#0e0e12;color:#e0ddd6;min-height:100vh;padding:20px}
+
+h1{text-align:center;font-size:20px;font-weight:700;color:#ccc;margin:20px 0 6px}
+.sub{text-align:center;font-size:13px;color:#555;margin-bottom:24px}
+
+/* 三列 */
+.row3{display:flex;gap:10px;justify-content:center;margin:0 auto 32px;max-width:1400px;flex-wrap:wrap}
+.col{flex:1;min-width:180px;max-width:260px}
+.col-tag{text-align:center;font-size:13px;font-weight:700;margin-bottom:8px;padding:5px 12px;border-radius:8px}
+.col-tag.a{background:#2a1a1a;color:#E24B4A}
+.col-tag.b{background:#1a2a1e;color:#2DD4BF}
+.col-tag.c{background:#1a1a2e;color:#7B9BDA}
+.col-tag.d{background:#2a2a1a;color:#D8B048}
+.col-tag.e{background:#1a2a1e;color:#2DD4BF}
+.col-desc{text-align:center;font-size:10px;color:#555;margin-bottom:8px;line-height:1.5}
+
+/* === 棋盘样式：精确对齐 v5 === */
+.mini-fr{
+  /* v5 暖金色边框 */
+  background:linear-gradient(160deg,#D8B048,#C09838,#D0A840,#B89030);
+  border-radius:10px;padding:4px;position:relative;
+}
+/* A/B 版本的阴影：v5 原版 */
+.mini-fr.shadow-ab{
+  box-shadow:
+    0 4px 8px rgba(0,0,0,.2),
+    0 12px 24px rgba(0,0,0,.25),
+    0 24px 48px rgba(0,0,0,.15),
+    inset 0 2px 0 rgba(255,255,255,.18),
+    inset 0 -2px 0 rgba(0,0,0,.2);
+}
+/* A/B 版本高光：v5 原版（纯顶部） */
+.mini-fr.shadow-ab::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.12) 0%,transparent 40%);
+  border-radius:10px;pointer-events:none}
+
+/* C 版本的阴影：#4 修正 — 三层阴影加水平偏移 */
+.mini-fr.shadow-c{
+  box-shadow:
+    2px 4px 8px rgba(0,0,0,.2),
+    4px 12px 24px rgba(0,0,0,.25),
+    6px 24px 48px rgba(0,0,0,.15),
+    inset 0 2px 0 rgba(255,255,255,.18),
+    inset 0 -2px 0 rgba(0,0,0,.2);
+}
+/* C 版本高光：#5 修正 — 左上角径向高光 */
+.mini-fr.shadow-c::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 20% 10%,rgba(255,255,255,.18) 0%,transparent 50%);
+  border-radius:10px;pointer-events:none}
+
+.mini-gr{
+  /* v5 冷蓝灰底板 */
+  background:linear-gradient(180deg,#B8C2D4,#B0BAD0);
+  border-radius:7px;display:grid;grid-template-columns:repeat(7,1fr);
+  gap:1px;padding:2px;
+}
+/* A/B 版本网格内阴影：v5 原版（纯顶部） */
+.mini-gr.grid-ab{box-shadow:inset 0 2px 5px rgba(0,0,0,.1)}
+/* C/D 版本网格内阴影：边框高于底面，上+左有投影 */
+.mini-gr.grid-c{box-shadow:
+  inset 0 3px 6px rgba(0,0,0,.15),
+  inset 2px 0 4px rgba(0,0,0,.08)
+}
+/* E 版本网格：提亮底色 + 同样内阴影 */
+.mini-gr.grid-e{
+  background:linear-gradient(180deg,#C4CCE0,#BCC6DC);
+  box-shadow:
+    inset 0 3px 6px rgba(0,0,0,.12),
+    inset 2px 0 4px rgba(0,0,0,.06)
+}
+.mini-gr.grid-e .mc{background:rgba(165,172,195,.3)}
+.mc{display:flex;align-items:center;justify-content:center;border-radius:3px;
+  background:rgba(155,162,182,.3);aspect-ratio:1}
+/* A/B 版本投影：v5 原版 */
+.mc.shadow-ab svg{width:96%;height:96%;filter:drop-shadow(1px 2px 2px rgba(0,0,0,.28))}
+/* C/D 版本投影：#3 修正 — 更有方向感 */
+.mc.shadow-c svg{width:96%;height:96%;filter:drop-shadow(2px 3px 1.5px rgba(0,0,0,.30))}
+/* E 版本投影：稍近一点 */
+.mc.shadow-e svg{width:96%;height:96%;filter:drop-shadow(1px 2px 1px rgba(0,0,0,.26))}
+
+.note{background:#16161e;border-left:3px solid #3B7DD8;padding:12px 16px;border-radius:0 10px 10px 0;font-size:12px;line-height:1.8;color:#888;margin:12px auto 32px;max-width:1100px}
+.note strong{color:#ccc}
+.note code{background:#1e1e28;padding:1px 5px;border-radius:3px;font-size:11px;color:#aaa}
+
+/* 单体大图 */
+.pieces-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.pc{display:flex;flex-direction:column;align-items:center;gap:3px;background:#141418;border-radius:10px;padding:8px 6px 5px;border:1px solid #1e1e24}
+.pc svg{width:68px;height:68px}
+.pc.shadow-ab svg{filter:drop-shadow(1px 2px 2px rgba(0,0,0,.28))}
+.pc.shadow-c svg{filter:drop-shadow(2px 3px 1.5px rgba(0,0,0,.30))}
+.pc.shadow-e svg{filter:drop-shadow(1px 2px 1px rgba(0,0,0,.26))}
+.pc-name{font-size:9px;color:#555}
+</style>
+</head>
+<body>
+
+<h1>光影修正对比 A → E</h1>
+<div class="sub">A = v5原版 &nbsp;|&nbsp; B = 去overlay &nbsp;|&nbsp; C = B+投影/边框 &nbsp;|&nbsp; D = C+边缘暗带 &nbsp;|&nbsp; E = D+提亮</div>
+
+<div class="note">
+  <strong>E 列改动：</strong>暗的地方不动，把亮的地方拉上去。<br>
+  1. 渐变亮端(0% stop) 提亮 15-20%<br>
+  2. 高光椭圆 opacity .18-.22 → .30-.35<br>
+  3. 三角亮面 opacity .12 → .20<br>
+  4. 网格底色提亮 + 微加饱和<br>
+  5. 障碍物提亮 10% + 加暖饱和
+</div>
+
+<!-- 单体大图 -->
+<div class="row3" id="singles"></div>
+
+<!-- 棋盘对比 -->
+<h1>棋盘整体效果</h1>
+<div class="sub">同一随机布局 · 注意边框阴影方向和棋子投影</div>
+<div class="row3" id="boards"></div>
+
+<div class="note" style="border-left-color:#2DD4BF;margin-bottom:40px">
+  <strong>E 列改动细节：</strong><br>
+  渐变亮端：<code>#F89098→#FFB0B8</code> <code>#58E098→#78F0B0</code> <code>#FFCF23→#FFE050</code> <code>#C070FF→#D498FF</code> <code>#60B0F8→#88C8FF</code><br>
+  高光椭圆：<code>.18-.22 → .30-.35</code> &nbsp; 三角亮面：<code>.12 → .20</code><br>
+  网格底色：<code>#B8C2D4 → #C4CCE0</code> 提亮+微加饱和 &nbsp; 内阴影微减
+</div>
+
+<script>
+// ===== v5 棋子 SVG =====
+// A = 原版（有 overlay）
+const P_A = {
+starfish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="a-sf" cx="35%" cy="30%"><stop offset="0%" stop-color="#F89098"/><stop offset="40%" stop-color="#E05068"/><stop offset="100%" stop-color="#B83850"/></radialGradient></defs><path d="M0-41Q10-35 17-18Q34-17 44-9Q40 5 27 14Q32 33 27 42Q14 41 0 33Q-14 41-27 42Q-32 33-27 14Q-40 5-44-9Q-34-17-17-18Q-10-35 0-41Z" fill="url(#a-sf)"/><path d="M0-41Q10-35 17-18Q34-17 44-9Q40 5 27 14Q32 33 27 42Q14 41 0 33Q-14 41-27 42Q-32 33-27 14Q-40 5-44-9Q-34-17-17-18Q-10-35 0-41Z" fill="rgba(0,0,0,.1)" clip-path="inset(0 0 0 55%)"/><path d="M0-41Q10-35 17-18Q34-17 44-9Q40 5 27 14L0 0Z" fill="rgba(255,255,255,.12)"/><ellipse cx="-12" cy="-15" rx="7" ry="9" fill="rgba(255,255,255,.22)" transform="rotate(-20 -12 -15)"/></svg>`,
+turtle: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="a-tu" cx="35%" cy="30%"><stop offset="0%" stop-color="#58E098"/><stop offset="40%" stop-color="#20BE70"/><stop offset="100%" stop-color="#108E50"/></radialGradient></defs><ellipse cx="0" cy="-30" rx="9" ry="11" fill="#108E50"/><ellipse cx="-36" cy="-5" rx="11" ry="8" fill="#108E50" transform="rotate(-25 -36 -5)"/><ellipse cx="36" cy="-5" rx="11" ry="8" fill="#108E50" transform="rotate(25 36 -5)"/><ellipse cx="-28" cy="32" rx="9" ry="8" fill="#108E50" transform="rotate(35 -28 32)"/><ellipse cx="28" cy="32" rx="9" ry="8" fill="#108E50" transform="rotate(-35 28 32)"/><ellipse cx="0" cy="5" rx="34" ry="29" fill="url(#a-tu)"/><ellipse cx="0" cy="5" rx="34" ry="29" fill="rgba(0,0,0,.1)" clip-path="inset(0 0 0 55%)"/><ellipse cx="0" cy="5" rx="22" ry="18" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/><circle cx="-10" cy="-3" r="6" fill="rgba(0,0,0,.08)"/><circle cx="10" cy="-1" r="6" fill="rgba(0,0,0,.08)"/><circle cx="0" cy="12" r="6.5" fill="rgba(0,0,0,.08)"/><ellipse cx="-10" cy="-7" rx="6" ry="8" fill="rgba(255,255,255,.18)" transform="rotate(-15 -10 -7)"/><circle cx="-5" cy="-28" r="2.8" fill="#084828"/><circle cx="5" cy="-28" r="2.8" fill="#084828"/><circle cx="-4.5" cy="-28.5" r="1.1" fill="#fff" opacity=".5"/><circle cx="5.5" cy="-28.5" r="1.1" fill="#fff" opacity=".5"/></svg>`,
+shell: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="a-sh" cx="35%" cy="25%"><stop offset="0%" stop-color="#FFCF23"/><stop offset="40%" stop-color="#CC991A"/><stop offset="100%" stop-color="#926E13"/></radialGradient></defs><path d="M0-42C-9-40-30-27-37-8C-39 10-30 27-17 36C-6 42 6 42 17 36C30 27 39 10 37-8C30-27 9-40 0-42Z" fill="url(#a-sh)"/><path d="M0-42C-9-40-30-27-37-8C-39 10-30 27-17 36C-6 42 0 38 0 0Z" fill="rgba(0,0,0,.12)"/><path d="M0-42Q-13 0-17 36" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/><path d="M0-42Q-22-5-33 20" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.2"/><path d="M0-42Q5 0 6 40" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/><path d="M0-42Q18-5 31 17" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.2"/><ellipse cx="-11" cy="-20" rx="6" ry="11" fill="rgba(255,255,255,.2)" transform="rotate(-10 -11 -20)"/><circle cx="-6" cy="-30" r="3" fill="rgba(255,255,255,.15)"/></svg>`,
+jellyfish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="a-jf" cx="35%" cy="30%"><stop offset="0%" stop-color="#C070FF"/><stop offset="40%" stop-color="#9848E0"/><stop offset="100%" stop-color="#7030B8"/></radialGradient></defs><path d="M-40 6Q-42-12-32-26Q-18-38 0-40Q18-38 32-26Q42-12 40 6Q22 12 0 8Q-22 12-40 6Z" fill="url(#a-jf)"/><path d="M-40 6Q-42-12-32-26Q-18-38 0-40Q0-10-40 6Z" fill="rgba(0,0,0,.1)"/><ellipse cx="-14" cy="-20" rx="8" ry="10" fill="rgba(255,255,255,.2)" transform="rotate(-12 -14 -20)"/><path d="M-24 8Q-30 16-22 22Q-18 26-22 30" fill="none" stroke="#B060F0" stroke-width="5.5" stroke-linecap="round" opacity=".8"/><path d="M-8 10Q-12 20-6 26Q-2 30-5 34" fill="none" stroke="#B060F0" stroke-width="5" stroke-linecap="round" opacity=".7"/><path d="M12 9Q16 18 10 24Q6 28 9 32" fill="none" stroke="#B060F0" stroke-width="5.5" stroke-linecap="round" opacity=".8"/><path d="M26 7Q32 14 24 20Q20 24 24 28" fill="none" stroke="#B060F0" stroke-width="4.5" stroke-linecap="round" opacity=".65"/><circle cx="-12" cy="-12" r="4.5" fill="rgba(255,255,255,.6)"/><circle cx="12" cy="-12" r="4.5" fill="rgba(255,255,255,.6)"/><circle cx="-11" cy="-12.5" r="2.2" fill="#4818A0"/><circle cx="13" cy="-12.5" r="2.2" fill="#4818A0"/></svg>`,
+fish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="a-fi" cx="38%" cy="32%"><stop offset="0%" stop-color="#60B0F8"/><stop offset="40%" stop-color="#2888E0"/><stop offset="100%" stop-color="#1060B0"/></radialGradient></defs><path d="M-11 18Q-20 29-24 42Q-9 36 0 38Q9 36 24 42Q20 29 11 18Z" fill="#1060B0"/><path d="M-4-33Q0-46 4-33" fill="#1060B0"/><path d="M-33-6Q-44 5-35 16" fill="none" stroke="#1060B0" stroke-width="5.5" stroke-linecap="round"/><path d="M33-6Q44 5 35 16" fill="none" stroke="#1060B0" stroke-width="5.5" stroke-linecap="round"/><path d="M0-35C15-33 31-22 37-6C42 7 35 18 20 25C9 29 4 27 0 27C-4 27-9 29-20 25C-35 18-42 7-37-6C-31-22-15-33 0-35Z" fill="url(#a-fi)"/><path d="M0-35C-15-33-31-22-37-6C-42 7-35 18-20 25C-9 29-4 27 0 27Z" fill="rgba(0,0,0,.1)"/><ellipse cx="-11" cy="-18" rx="5.5" ry="8.5" fill="rgba(255,255,255,.22)" transform="rotate(-12 -11 -18)"/><circle cx="-7" cy="-26" r="2.8" fill="rgba(255,255,255,.16)"/><circle cx="-11" cy="-12" r="5" fill="rgba(255,255,255,.65)"/><circle cx="11" cy="-12" r="5" fill="rgba(255,255,255,.65)"/><circle cx="-10" cy="-12.5" r="2.5" fill="#084070"/><circle cx="12" cy="-12.5" r="2.5" fill="#084070"/><circle cx="-9.5" cy="-13" r="1" fill="#fff" opacity=".6"/><circle cx="12.5" cy="-13" r="1" fill="#fff" opacity=".6"/></svg>`
+};
+
+// B/C = 去掉 overlay（渐变 id 换前缀避免冲突）
+function stripOverlay(svg, oldPrefix, newPrefix) {
+  let s = svg;
+  // 换 gradient id
+  s = s.replace(new RegExp('id="'+oldPrefix, 'g'), 'id="'+newPrefix);
+  s = s.replace(new RegExp('url\\(#'+oldPrefix, 'g'), 'url(#'+newPrefix);
+  // 去掉 overlay 行：clip-path="inset..." 或 左半暗面 path
+  // starfish/turtle overlay: 整行是 fill="rgba(0,0,0,.1)" clip-path="inset(0 0 0 55%)"
+  s = s.replace(/<path d="[^"]*" fill="rgba\(0,0,0,\.1\)" clip-path="inset\(0 0 0 55%\)"\/>/g, '');
+  s = s.replace(/<ellipse[^/]*fill="rgba\(0,0,0,\.1\)" clip-path="inset\(0 0 0 55%\)"\/>/g, '');
+  // shell: left-half path ending with "0 38 0 0Z"
+  s = s.replace(/<path d="M0-42C-9-40[^"]*0 38 0 0Z" fill="rgba\(0,0,0,\.12\)"\/>/g, '');
+  // jellyfish: left-half dome
+  s = s.replace(/<path d="M-40 6Q-42-12-32-26Q-18-38 0-40Q0-10-40 6Z" fill="rgba\(0,0,0,\.1\)"\/>/g, '');
+  // fish: left-half body
+  s = s.replace(/<path d="M0-35C-15-33-31-22-37-6C-42 7-35 18-20 25C-9 29-4 27 0 27Z" fill="rgba\(0,0,0,\.1\)"\/>/g, '');
+  // 修正海星高光方向：右上→左上
+  s = s.replace(
+    'M0-41Q10-35 17-18Q34-17 44-9Q40 5 27 14L0 0Z',
+    'M0-41Q-10-35-17-18Q-34-17-44-9Q-40 5-27 14L0 0Z'
+  );
+  return s;
+}
+
+// Fresnel: SVG filter — 对整体轮廓做边缘提取 + 模糊发光
+// feMorphology erode 提取边缘，feGaussianBlur 柔化，feFlood 上白色
+function addFresnel(svg, uid) {
+  const fid = `fr-${uid}`;
+  const filterDef = `<filter id="${fid}" x="-10%" y="-10%" width="120%" height="120%">
+    <feMorphology operator="erode" radius="1.2" in="SourceAlpha" result="inner"/>
+    <feComposite operator="out" in="SourceAlpha" in2="inner" result="rim"/>
+    <feGaussianBlur in="rim" stdDeviation="1.5" result="soft"/>
+    <feFlood flood-color="white" flood-opacity=".09"/>
+    <feComposite operator="in" in2="soft" result="glow"/>
+    <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="glow"/></feMerge>
+  </filter>`;
+  // 把 filter 定义插入 <defs> 内，把所有内容包进 <g filter="...">
+  let s = svg;
+  s = s.replace('</radialGradient></defs>', `</radialGradient>${filterDef}</defs>`);
+  s = s.replace(/<\/defs>/, `</defs><g filter="url(#${fid})">`);
+  s = s.replace('</svg>', '</g></svg>');
+  return s;
+}
+
+// D 列：边缘暗色收边 — SVG filter，渐变完全不动
+// 用 erode 提取极细边缘带，flood 黑色模拟法线垂直面的暗化
+// 同时菲涅尔（白色）降到 .04，叠加在暗收边之外
+function addEdgeRim(svg, uid) {
+  const rid = `rim-${uid}`;
+  // 暗色收边 filter：erode 提取 0.8px 边缘，轻微模糊，黑色 opacity .15
+  // + 白色菲涅尔 erode 1.2px，模糊 1.5，opacity .04
+  const filterDef = `<filter id="${rid}" x="-10%" y="-10%" width="120%" height="120%">
+    <feMorphology operator="erode" radius="1.6" in="SourceAlpha" result="innerDk"/>
+    <feComposite operator="out" in="SourceAlpha" in2="innerDk" result="darkRim"/>
+    <feGaussianBlur in="darkRim" stdDeviation="1.1" result="softDark"/>
+    <feFlood flood-color="black" flood-opacity=".32" result="dkColor"/>
+    <feComposite operator="in" in="dkColor" in2="softDark" result="darkEdge"/>
+    <feMorphology operator="erode" radius="1.2" in="SourceAlpha" result="innerLt"/>
+    <feComposite operator="out" in="SourceAlpha" in2="innerLt" result="lightRim"/>
+    <feGaussianBlur in="lightRim" stdDeviation="1.5" result="softLight"/>
+    <feFlood flood-color="white" flood-opacity=".04" result="ltColor"/>
+    <feComposite operator="in" in="ltColor" in2="softLight" result="lightEdge"/>
+    <feMerge>
+      <feMergeNode in="SourceGraphic"/>
+      <feMergeNode in="darkEdge"/>
+      <feMergeNode in="lightEdge"/>
+    </feMerge>
+  </filter>`;
+  let s = svg;
+  s = s.replace('</radialGradient></defs>', `</radialGradient>${filterDef}</defs>`);
+  s = s.replace(/<\/defs>/, `</defs><g filter="url(#${rid})">`);
+  s = s.replace('</svg>', '</g></svg>');
+  return s;
+}
+
+// E 列边缘暗带：比 D 弱一档
+function addEdgeRimLight(svg, uid) {
+  const rid = `rim-${uid}`;
+  const filterDef = `<filter id="${rid}" x="-10%" y="-10%" width="120%" height="120%">
+    <feMorphology operator="erode" radius="1.3" in="SourceAlpha" result="innerDk"/>
+    <feComposite operator="out" in="SourceAlpha" in2="innerDk" result="darkRim"/>
+    <feGaussianBlur in="darkRim" stdDeviation="0.9" result="softDark"/>
+    <feFlood flood-color="black" flood-opacity=".22" result="dkColor"/>
+    <feComposite operator="in" in="dkColor" in2="softDark" result="darkEdge"/>
+    <feMorphology operator="erode" radius="1.2" in="SourceAlpha" result="innerLt"/>
+    <feComposite operator="out" in="SourceAlpha" in2="innerLt" result="lightRim"/>
+    <feGaussianBlur in="lightRim" stdDeviation="1.5" result="softLight"/>
+    <feFlood flood-color="white" flood-opacity=".04" result="ltColor"/>
+    <feComposite operator="in" in="ltColor" in2="softLight" result="lightEdge"/>
+    <feMerge>
+      <feMergeNode in="SourceGraphic"/>
+      <feMergeNode in="darkEdge"/>
+      <feMergeNode in="lightEdge"/>
+    </feMerge>
+  </filter>`;
+  let s = svg;
+  s = s.replace('</radialGradient></defs>', `</radialGradient>${filterDef}</defs>`);
+  s = s.replace(/<\/defs>/, `</defs><g filter="url(#${rid})">`);
+  s = s.replace('</svg>', '</g></svg>');
+  return s;
+}
+
+// E 列：提亮 + 渐变过渡平滑化
+function brightenPiece(svg) {
+  let s = svg;
+  // 1. 渐变亮端微提亮 (0% stop)
+  s = s.replace('#F89098', '#FFA0A8');  // starfish
+  s = s.replace('#58E098', '#68E8A0');  // turtle
+  s = s.replace('#FFCF23', '#FFD840');  // shell
+  s = s.replace('#C070FF', '#CC80FF');  // jellyfish
+  s = s.replace('#60B0F8', '#78C0FF');  // fish
+
+  // 2. 暗端(100% stop)提亮
+  s = s.replace('#B83850', '#D04860');  // starfish
+  s = s.replace('#108E50', '#20A060');  // turtle
+  s = s.replace('#926E13', '#A88020');  // shell
+  s = s.replace('#7030B8', '#8040C8');  // jellyfish
+  s = s.replace('#1060B0', '#2070C0');  // fish
+
+  // 3. 中间 stop 从 40% 推到 58%，亮区占比更大，过渡更缓
+  s = s.replace(/offset="40%"/g, 'offset="65%"');
+
+  // 4. 高光椭圆 opacity 微提升（温和）
+  s = s.replace(/fill="rgba\(255,255,255,\.22\)"/g, 'fill="rgba(255,255,255,.28)"');
+  s = s.replace(/fill="rgba\(255,255,255,\.2\)"/g, 'fill="rgba(255,255,255,.26)"');
+  s = s.replace(/fill="rgba\(255,255,255,\.18\)"/g, 'fill="rgba(255,255,255,.24)"');
+  s = s.replace(/fill="rgba\(255,255,255,\.16\)"/g, 'fill="rgba(255,255,255,.20)"');
+  s = s.replace(/fill="rgba\(255,255,255,\.15\)"/g, 'fill="rgba(255,255,255,.20)"');
+
+  // 5. 三角亮面 opacity 微提升
+  s = s.replace(/fill="rgba\(255,255,255,\.12\)"/g, 'fill="rgba(255,255,255,.16)"');
+
+  return s;
+}
+
+const P_B = {}, P_C = {}, P_D = {}, P_E = {};
+const keys = ['starfish','turtle','shell','jellyfish','fish'];
+keys.forEach(k => {
+  P_B[k] = stripOverlay(P_A[k], 'a-', 'b-');
+  P_C[k] = addFresnel(stripOverlay(P_A[k], 'a-', 'c-'), 'c-'+k);
+  P_D[k] = addEdgeRim(stripOverlay(P_A[k], 'a-', 'd-'), 'd-'+k);
+  P_E[k] = brightenPiece(addEdgeRimLight(stripOverlay(P_A[k], 'a-', 'e-'), 'e-'+k));
+});
+
+const names = {starfish:'海星',turtle:'海龟',shell:'贝壳',jellyfish:'水母',fish:'鱼'};
+
+// 单体大图
+const singlesEl = document.getElementById('singles');
+[
+  {set:P_A, tag:'A. v5原版', cls:'a', shCls:'shadow-ab'},
+  {set:P_B, tag:'B. 去overlay', cls:'b', shCls:'shadow-ab'},
+  {set:P_C, tag:'C. +投影/边框', cls:'c', shCls:'shadow-c'},
+  {set:P_D, tag:'D. +边缘暗带', cls:'d', shCls:'shadow-c'},
+  {set:P_E, tag:'E. +提亮', cls:'e', shCls:'shadow-e'}
+].forEach(col => {
+  const div = document.createElement('div');
+  div.className = 'col';
+  div.innerHTML = `<div class="col-tag ${col.cls}">${col.tag}</div>`;
+  const row = document.createElement('div');
+  row.className = 'pieces-row';
+  keys.forEach(k => {
+    const pc = document.createElement('div');
+    pc.className = 'pc ' + col.shCls;
+    pc.innerHTML = `<div>${col.set[k]}</div><div class="pc-name">${names[k]}</div>`;
+    row.appendChild(pc);
+  });
+  div.appendChild(row);
+  singlesEl.appendChild(div);
+});
+
+// 棋盘
+function rng(seed){let s=seed;return()=>{s=(s*16807)%2147483647;return s/2147483647;}}
+const SEED=42, ROWS=5, COLS=7;
+const boardsEl = document.getElementById('boards');
+
+[
+  {set:P_A, tag:'A. v5原版', cls:'a', frCls:'shadow-ab', mcCls:'shadow-ab', grCls:'grid-ab'},
+  {set:P_B, tag:'B. 去overlay', cls:'b', frCls:'shadow-ab', mcCls:'shadow-ab', grCls:'grid-ab'},
+  {set:P_C, tag:'C. +投影/边框', cls:'c', frCls:'shadow-c', mcCls:'shadow-c', grCls:'grid-c'},
+  {set:P_D, tag:'D. +边缘暗带', cls:'d', frCls:'shadow-c', mcCls:'shadow-c', grCls:'grid-c'},
+  {set:P_E, tag:'E. +提亮', cls:'e', frCls:'shadow-c', mcCls:'shadow-e', grCls:'grid-e'}
+].forEach(col => {
+  const div = document.createElement('div');
+  div.className = 'col';
+  div.innerHTML = `<div class="col-tag ${col.cls}">${col.tag}</div>
+    <div class="mini-fr ${col.frCls}"><div class="mini-gr ${col.grCls}" id="board-${col.cls}"></div></div>`;
+  boardsEl.appendChild(div);
+
+  const grid = div.querySelector('.mini-gr');
+  const r = rng(SEED);
+  for(let i=0;i<ROWS*COLS;i++){
+    const cell = document.createElement('div');
+    cell.className = 'mc ' + col.mcCls;
+    cell.innerHTML = col.set[keys[Math.floor(r()*keys.length)]];
+    grid.appendChild(cell);
+  }
+});
+</script>
+</body>
+</html>

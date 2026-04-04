@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>配色优化方案对比</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',sans-serif;background:#0a0c10;color:#e0ddd6;min-height:100vh}
+.header{text-align:center;padding:36px 20px 8px}
+.header h1{font-size:22px;font-weight:700;color:#eee}
+.header p{color:#555;font-size:13px;margin-top:6px;line-height:1.6}
+.container{max-width:1200px;margin:0 auto;padding:0 12px 60px}
+.schemes{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:24px 0}
+@media(max-width:800px){.schemes{grid-template-columns:1fr}}
+.scheme-card{background:#12141a;border-radius:16px;padding:16px;border:2px solid #1e2028;transition:border-color .3s}
+.scheme-card.current{border-color:#555}
+.scheme-card.a{border-color:#4A90C8}
+.scheme-card.b{border-color:#2A7868}
+.scheme-card.c{border-color:#C8A040}
+.scheme-header{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.scheme-name{font-size:15px;font-weight:700}
+.scheme-tag{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.scheme-desc{font-size:11px;color:#666;margin-bottom:12px;line-height:1.6}
+/* Palette strip */
+.palette{display:flex;gap:4px;margin-bottom:10px;align-items:flex-end}
+.swatch{display:flex;flex-direction:column;align-items:center;gap:2px}
+.swatch-color{width:36px;height:36px;border-radius:8px;border:1px solid rgba(255,255,255,.1)}
+.swatch-label{font-size:8px;color:#555;white-space:nowrap}
+.swatch-hex{font-size:8px;color:#444;font-family:monospace}
+.swatch-sm .swatch-color{width:24px;height:24px;border-radius:6px}
+/* Board */
+.board-scene{border-radius:14px;padding:8px;position:relative;overflow:hidden}
+.board-frame{border-radius:10px;padding:4px;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 2px 6px rgba(0,0,0,.3)}
+.board-grid{border-radius:8px;padding:3px;display:grid;gap:2px;grid-template-columns:repeat(9,1fr)}
+.grid-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:5px}
+.grid-cell svg{width:94%;height:94%;filter:drop-shadow(1px 2px 2px rgba(0,0,0,.25))}
+/* HSV stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.stat{background:#0e1016;border-radius:8px;padding:6px 8px;text-align:center}
+.stat-label{font-size:9px;color:#555;margin-bottom:2px}
+.stat-val{font-size:12px;font-weight:600}
+/* Note */
+.note{background:#13151c;border-left:3px solid #38BDF8;padding:12px 16px;border-radius:0 10px 10px 0;font-size:12px;line-height:1.8;color:#777;margin:16px 0}
+.note strong{color:#bbb;font-weight:500}
+.fix-tag{display:inline-block;font-size:9px;padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:600}
+.fix-tag.good{background:rgba(45,212,191,.15);color:#2DD4BF}
+.fix-tag.warn{background:rgba(251,191,36,.15);color:#FBBF24}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>配色优化方案对比</h1>
+  <p>基于 H/S/V 三维度分析，保持海洋主题不变，提供三套优化方向</p>
+</div>
+<div class="container">
+
+<div class="note">
+  <strong>共同修正目标：</strong>
+  ① 底板暖色→冷色 <span class="fix-tag good">7/7参考均冷底</span>
+  ② 水母饱和度 44%→70%+ <span class="fix-tag good">拉齐棋子S</span>
+  ③ 海星饱和度 56%→70%+ <span class="fix-tag good">拉齐棋子S</span>
+  ④ 海龟-鱼色相差 26°→50°+ <span class="fix-tag good">防混淆</span>
+  ⑤ 整体明度下压 <span class="fix-tag good">留出特效空间</span>
+</div>
+
+<div class="schemes" id="schemes"></div>
+
+</div>
+
+<script>
+// ============================================================
+//  SVG shape generators (from shaped-board-v3, parameterized color)
+// ============================================================
+
+function starfish(colors, s) {
+  s=s||40;
+  const c = colors.starfish;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}">
+    <defs><radialGradient id="sf-${c.id}" cx="35%" cy="30%"><stop offset="0%" stop-color="${c.hi}"/><stop offset="40%" stop-color="${c.mid}"/><stop offset="100%" stop-color="${c.lo}"/></radialGradient></defs>
+    <path d="M0-41Q10-35 17-18Q34-17 44-9Q40 5 27 14Q32 33 27 42Q14 41 0 33Q-14 41-27 42Q-32 33-27 14Q-40 5-44-9Q-34-17-17-18Q-10-35 0-41Z" fill="url(#sf-${c.id})"/>
+    <path d="M0-41Q10-35 17-18Q34-17 44-9Q40 5 27 14Q32 33 27 42Q14 41 0 33Q-14 41-27 42Q-32 33-27 14Q-40 5-44-9Q-34-17-17-18Q-10-35 0-41Z" fill="rgba(0,0,0,.1)" clip-path="inset(0 0 0 55%)"/>
+    <path d="M0-41Q10-35 17-18Q34-17 44-9Q40 5 27 14L0 0Z" fill="rgba(255,255,255,.12)"/>
+    <ellipse cx="-12" cy="-15" rx="7" ry="9" fill="rgba(255,255,255,.22)" transform="rotate(-20 -12 -15)"/>
+  </svg>`;
+}
+
+function turtle(colors, s) {
+  s=s||40;
+  const c = colors.turtle;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}">
+    <defs><radialGradient id="tu-${c.id}" cx="35%" cy="30%"><stop offset="0%" stop-color="${c.hi}"/><stop offset="40%" stop-color="${c.mid}"/><stop offset="100%" stop-color="${c.lo}"/></radialGradient></defs>
+    <ellipse cx="0" cy="-30" rx="9" ry="11" fill="${c.lo}"/>
+    <ellipse cx="-36" cy="-5" rx="11" ry="8" fill="${c.lo}" transform="rotate(-25 -36 -5)"/>
+    <ellipse cx="36" cy="-5" rx="11" ry="8" fill="${c.lo}" transform="rotate(25 36 -5)"/>
+    <ellipse cx="-28" cy="32" rx="9" ry="8" fill="${c.lo}" transform="rotate(35 -28 32)"/>
+    <ellipse cx="28" cy="32" rx="9" ry="8" fill="${c.lo}" transform="rotate(-35 28 32)"/>
+    <ellipse cx="0" cy="5" rx="34" ry="29" fill="url(#tu-${c.id})"/>
+    <ellipse cx="0" cy="5" rx="34" ry="29" fill="rgba(0,0,0,.1)" clip-path="inset(0 0 0 55%)"/>
+    <ellipse cx="0" cy="5" rx="22" ry="18" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/>
+    <circle cx="-10" cy="-3" r="6" fill="rgba(0,0,0,.08)"/><circle cx="10" cy="-1" r="6" fill="rgba(0,0,0,.08)"/>
+    <circle cx="0" cy="12" r="6.5" fill="rgba(0,0,0,.08)"/><circle cx="-14" cy="12" r="5" fill="rgba(0,0,0,.06)"/><circle cx="14" cy="12" r="5" fill="rgba(0,0,0,.06)"/>
+    <ellipse cx="-10" cy="-7" rx="6" ry="8" fill="rgba(255,255,255,.18)" transform="rotate(-15 -10 -7)"/>
+    <circle cx="-5" cy="-28" r="2.8" fill="${c.eye}"/><circle cx="5" cy="-28" r="2.8" fill="${c.eye}"/>
+    <circle cx="-4.5" cy="-28.5" r="1.1" fill="#fff" opacity=".5"/><circle cx="5.5" cy="-28.5" r="1.1" fill="#fff" opacity=".5"/>
+  </svg>`;
+}
+
+function shell(colors, s) {
+  s=s||40;
+  const c = colors.shell;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}">
+    <defs><radialGradient id="sh-${c.id}" cx="35%" cy="25%"><stop offset="0%" stop-color="${c.hi}"/><stop offset="40%" stop-color="${c.mid}"/><stop offset="100%" stop-color="${c.lo}"/></radialGradient></defs>
+    <path d="M0-42C-9-40-30-27-37-8C-39 10-30 27-17 36C-6 42 6 42 17 36C30 27 39 10 37-8C30-27 9-40 0-42Z" fill="url(#sh-${c.id})"/>
+    <path d="M0-42C-9-40-30-27-37-8C-39 10-30 27-17 36C-6 42 0 38 0 0Z" fill="rgba(0,0,0,.12)"/>
+    <path d="M0-42Q-13 0-17 36" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/>
+    <path d="M0-42Q-22-5-33 20" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.2"/>
+    <path d="M0-42Q5 0 6 40" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/>
+    <path d="M0-42Q18-5 31 17" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.2"/>
+    <ellipse cx="-11" cy="-20" rx="6" ry="11" fill="rgba(255,255,255,.2)" transform="rotate(-10 -11 -20)"/>
+    <circle cx="-6" cy="-30" r="3" fill="rgba(255,255,255,.15)"/>
+  </svg>`;
+}
+
+function jellyfish(colors, s) {
+  s=s||40;
+  const c = colors.jellyfish;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}">
+    <defs><radialGradient id="jf-${c.id}" cx="35%" cy="30%"><stop offset="0%" stop-color="${c.hi}"/><stop offset="40%" stop-color="${c.mid}"/><stop offset="100%" stop-color="${c.lo}"/></radialGradient></defs>
+    <path d="M-40 6Q-42-12-32-26Q-18-38 0-40Q18-38 32-26Q42-12 40 6Q22 12 0 8Q-22 12-40 6Z" fill="url(#jf-${c.id})"/>
+    <path d="M-40 6Q-42-12-32-26Q-18-38 0-40Q0-10-40 6Z" fill="rgba(0,0,0,.1)"/>
+    <ellipse cx="-14" cy="-20" rx="8" ry="10" fill="rgba(255,255,255,.2)" transform="rotate(-12 -14 -20)"/>
+    <path d="M-24 8Q-30 16-22 22Q-18 26-22 30" fill="none" stroke="${c.tent}" stroke-width="5.5" stroke-linecap="round" opacity=".8"/>
+    <path d="M-8 10Q-12 20-6 26Q-2 30-5 34" fill="none" stroke="${c.tent}" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+    <path d="M12 9Q16 18 10 24Q6 28 9 32" fill="none" stroke="${c.tent}" stroke-width="5.5" stroke-linecap="round" opacity=".8"/>
+    <path d="M26 7Q32 14 24 20Q20 24 24 28" fill="none" stroke="${c.tent}" stroke-width="4.5" stroke-linecap="round" opacity=".65"/>
+    <circle cx="-12" cy="-12" r="4.5" fill="rgba(255,255,255,.6)"/>
+    <circle cx="12" cy="-12" r="4.5" fill="rgba(255,255,255,.6)"/>
+    <circle cx="-11" cy="-12.5" r="2.2" fill="${c.eye}"/>
+    <circle cx="13" cy="-12.5" r="2.2" fill="${c.eye}"/>
+  </svg>`;
+}
+
+function fish(colors, s) {
+  s=s||40;
+  const c = colors.fish;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}">
+    <defs><radialGradient id="fi-${c.id}" cx="38%" cy="32%"><stop offset="0%" stop-color="${c.hi}"/><stop offset="40%" stop-color="${c.mid}"/><stop offset="100%" stop-color="${c.lo}"/></radialGradient></defs>
+    <path d="M-11 18Q-20 29-24 42Q-9 36 0 38Q9 36 24 42Q20 29 11 18Z" fill="${c.lo}"/>
+    <path d="M-4-33Q0-46 4-33" fill="${c.lo}"/>
+    <path d="M-33-6Q-44 5-35 16" fill="none" stroke="${c.lo}" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M33-6Q44 5 35 16" fill="none" stroke="${c.lo}" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M0-35C15-33 31-22 37-6C42 7 35 18 20 25C9 29 4 27 0 27C-4 27-9 29-20 25C-35 18-42 7-37-6C-31-22-15-33 0-35Z" fill="url(#fi-${c.id})"/>
+    <path d="M0-35C-15-33-31-22-37-6C-42 7-35 18-20 25C-9 29-4 27 0 27Z" fill="rgba(0,0,0,.1)"/>
+    <ellipse cx="-11" cy="-18" rx="5.5" ry="8.5" fill="rgba(255,255,255,.22)" transform="rotate(-12 -11 -18)"/>
+    <circle cx="-7" cy="-26" r="2.8" fill="rgba(255,255,255,.16)"/>
+    <circle cx="-11" cy="-12" r="5" fill="rgba(255,255,255,.65)"/>
+    <circle cx="11" cy="-12" r="5" fill="rgba(255,255,255,.65)"/>
+    <circle cx="-10" cy="-12.5" r="2.5" fill="${c.eye}"/>
+    <circle cx="12" cy="-12.5" r="2.5" fill="${c.eye}"/>
+    <circle cx="-9.5" cy="-13" r="1" fill="#fff" opacity=".6"/>
+    <circle cx="12.5" cy="-13" r="1" fill="#fff" opacity=".6"/>
+  </svg>`;
+}
+
+// ============================================================
+//  Color schemes
+// ============================================================
+const schemes = [
+  {
+    key: 'current', cls: 'current', name: '当前方案', tag: '基准', tagColor: '#555',
+    desc: '暖灰底板 · 水母/海星饱和度偏低 · 海龟鱼色相仅差26°',
+    board: '#D8CCC0', frame: '#7AAFA5', cellBg: 'rgba(190,178,164,.3)',
+    boardScene: 'linear-gradient(180deg,#C8B8A4 0%,#E8D5C4 30%,#D4C8B4 100%)',
+    frameBg: 'linear-gradient(145deg,#7AAFA5,#5D998F,#6BA09A)',
+    colors: {
+      starfish:  {id:'c0s', mid:'#FF7085', hi:'#FFB0BB', lo:'#D44A60'},
+      turtle:    {id:'c0t', mid:'#2DD4BF', hi:'#6EECD8', lo:'#18A08A', eye:'#0D5C4E'},
+      shell:     {id:'c0h', mid:'#FBBF24', hi:'#FFD866', lo:'#C49010'},
+      jellyfish: {id:'c0j', mid:'#A78BFA', hi:'#C8B0FF', lo:'#7C5CD4', tent:'#B89EF8', eye:'#5C3CAA'},
+      fish:      {id:'c0f', mid:'#38BDF8', hi:'#78D4FF', lo:'#1890D0', eye:'#0C5F8A'},
+    },
+    stats: {boardH:30, boardS:11, boardV:85, pieceSRange:'44-86', pieceVRange:'83-100', turtleFishGap:26}
+  },
+  {
+    key: 'a', cls: 'a', name: '方案A · 冷灰柔光', tag: '稳健', tagColor: '#4A90C8',
+    desc: '最小改动 — 底板偏冷蓝灰，拉齐饱和度到70-85%，整体降5%明度。海龟偏纯绿(H=150°)、鱼偏纯蓝(H=215°)拉开色相。水母偏红紫增强存在感。',
+    board: '#C0C8D6', frame: '#6EA8A0', cellBg: 'rgba(165,172,190,.3)',
+    boardScene: 'linear-gradient(180deg,#ACB4C8 0%,#C4CCD8 30%,#B8C0D0 100%)',
+    frameBg: 'linear-gradient(145deg,#6EA8A0,#588E88,#629890)',
+    colors: {
+      starfish:  {id:'a0s', mid:'#E0506E', hi:'#F89098', lo:'#B83050'},
+      turtle:    {id:'a0t', mid:'#20C080', hi:'#58E0A8', lo:'#109060', eye:'#085030'},
+      shell:     {id:'a0h', mid:'#E8AE20', hi:'#FDD05C', lo:'#B88808'},
+      jellyfish: {id:'a0j', mid:'#9858E0', hi:'#C088FF', lo:'#7038C0', tent:'#A870F0', eye:'#4820A8'},
+      fish:      {id:'a0f', mid:'#2888E0', hi:'#60B0FF', lo:'#1060B8', eye:'#084070'},
+    },
+    stats: {boardH:222, boardS:10, boardV:84, pieceSRange:'72-86', pieceVRange:'78-91', turtleFishGap:65}
+  },
+  {
+    key: 'b', cls: 'b', name: '方案B · 深海宝石', tag: '高对比', tagColor: '#2DD4BF',
+    desc: '底板压暗到V=50% — Bejeweled式"暗底亮宝石"。棋子像自发光一样浮在深色海底上，对比度最强。',
+    board: '#606878', frame: '#38786C', cellBg: 'rgba(78,84,100,.45)',
+    boardScene: 'linear-gradient(180deg,#484E5C 0%,#606878 30%,#545C6C 100%)',
+    frameBg: 'linear-gradient(145deg,#38786C,#286058,#307068)',
+    colors: {
+      starfish:  {id:'b0s', mid:'#E85070', hi:'#FF90A0', lo:'#C03050'},
+      turtle:    {id:'b0t', mid:'#22C480', hi:'#5CE8A8', lo:'#109460', eye:'#064830'},
+      shell:     {id:'b0h', mid:'#E8B020', hi:'#FFD458', lo:'#B08008'},
+      jellyfish: {id:'b0j', mid:'#9050D8', hi:'#B880FF', lo:'#6830B0', tent:'#A068E8', eye:'#4018A0'},
+      fish:      {id:'b0f', mid:'#2890E8', hi:'#60B8FF', lo:'#1068C0', eye:'#084878'},
+    },
+    stats: {boardH:220, boardS:18, boardV:47, pieceSRange:'74-88', pieceVRange:'80-91', turtleFishGap:65}
+  },
+  {
+    key: 'b2', cls: 'b', name: '方案B2 · 深海压黄', tag: '微调', tagColor: '#40C8A0',
+    desc: '在B基础上只降贝壳V(91%→80%)。暗底+深金，其余不动。',
+    board: '#606878', frame: '#38786C', cellBg: 'rgba(78,84,100,.45)',
+    boardScene: 'linear-gradient(180deg,#484E5C 0%,#606878 30%,#545C6C 100%)',
+    frameBg: 'linear-gradient(145deg,#38786C,#286058,#307068)',
+    colors: {
+      starfish:  {id:'b2s', mid:'#E85070', hi:'#FF90A0', lo:'#C03050'},
+      turtle:    {id:'b2t', mid:'#22C480', hi:'#5CE8A8', lo:'#109460', eye:'#064830'},
+      shell:     {id:'b2h', mid:'#CC9A1C', hi:'#FFD025', lo:'#926F14'},
+      jellyfish: {id:'b2j', mid:'#9050D8', hi:'#B880FF', lo:'#6830B0', tent:'#A068E8', eye:'#4018A0'},
+      fish:      {id:'b2f', mid:'#2890E8', hi:'#60B8FF', lo:'#1068C0', eye:'#084878'},
+    },
+    stats: {boardH:220, boardS:18, boardV:47, pieceSRange:'74-88', pieceVRange:'80-88', turtleFishGap:65}
+  },
+  {
+    key: 'c', cls: 'c', name: '方案C · 皇家海洋', tag: '暖框冷底', tagColor: '#C8A040',
+    desc: '对标Royal Match — 冷蓝灰底板 + 厚实暖金色边框，冷暖对比层次最丰富。海龟偏纯绿(H=145°)、鱼偏纯蓝(H=215°)，色相差70°。',
+    board: '#B4BED0', frame: '#D0A040', cellBg: 'rgba(155,162,182,.3)',
+    boardScene: 'linear-gradient(180deg,#A0A8C0 0%,#B8C2D4 30%,#ACB4C8 100%)',
+    frameBg: 'linear-gradient(145deg,#D8B048,#C09838,#D0A840)',
+    colors: {
+      starfish:  {id:'cs0', mid:'#E05068', hi:'#F89098', lo:'#B83850'},
+      turtle:    {id:'cs1', mid:'#20BE70', hi:'#58E098', lo:'#108E50', eye:'#084828'},
+      shell:     {id:'cs2', mid:'#F0B020', hi:'#FFD058', lo:'#B88010'},
+      jellyfish: {id:'cs3', mid:'#A050D8', hi:'#C880F0', lo:'#7830B0', tent:'#B068E0', eye:'#5020A0'},
+      fish:      {id:'cs4', mid:'#2888E0', hi:'#60B0F8', lo:'#1060B0', eye:'#084070'},
+    },
+    stats: {boardH:224, boardS:13, boardV:82, pieceSRange:'72-87', pieceVRange:'78-91', turtleFishGap:70}
+  },
+  {
+    key: 'c2', cls: 'c', name: '方案C2 · 压黄提紫', tag: '微调', tagColor: '#E8A840',
+    desc: '只在C基础上改两处：贝壳V从94%降到80%（金色→深金），水母S从63%提到75%。其余不动。',
+    board: '#B4BED0', frame: '#D0A040', cellBg: 'rgba(155,162,182,.3)',
+    boardScene: 'linear-gradient(180deg,#A0A8C0 0%,#B8C2D4 30%,#ACB4C8 100%)',
+    frameBg: 'linear-gradient(145deg,#D8B048,#C09838,#D0A840)',
+    colors: {
+      starfish:  {id:'c2s', mid:'#E05068', hi:'#F89098', lo:'#B83850'},
+      turtle:    {id:'c2t', mid:'#20BE70', hi:'#58E098', lo:'#108E50', eye:'#084828'},
+      shell:     {id:'c2h', mid:'#CC991A', hi:'#FFCF23', lo:'#926E13'},
+      jellyfish: {id:'c2j', mid:'#9848E0', hi:'#C070FF', lo:'#7030B8', tent:'#B060F0', eye:'#4818A0'},
+      fish:      {id:'c2f', mid:'#2888E0', hi:'#60B0F8', lo:'#1060B0', eye:'#084070'},
+    },
+    stats: {boardH:224, boardS:13, boardV:82, pieceSRange:'75-87', pieceVRange:'78-88', turtleFishGap:70}
+  },
+  {
+    key: 'c3', cls: 'c', name: '方案C3 · 零间隙', tag: '紧密', tagColor: '#F0C040',
+    desc: 'C2配色 + gap=1px + 填充98%。间隙减半，棋子更紧凑但保留格子分隔。',
+    board: '#B4BED0', frame: '#D0A040', cellBg: 'rgba(155,162,182,.3)',
+    boardScene: 'linear-gradient(180deg,#A0A8C0 0%,#B8C2D4 30%,#ACB4C8 100%)',
+    frameBg: 'linear-gradient(145deg,#D8B048,#C09838,#D0A840)',
+    gridGap: '1px',
+    pieceSize: '98%',
+    colors: {
+      starfish:  {id:'c3s', mid:'#E05068', hi:'#F89098', lo:'#B83850'},
+      turtle:    {id:'c3t', mid:'#20BE70', hi:'#58E098', lo:'#108E50', eye:'#084828'},
+      shell:     {id:'c3h', mid:'#CC991A', hi:'#FFCF23', lo:'#926E13'},
+      jellyfish: {id:'c3j', mid:'#9848E0', hi:'#C070FF', lo:'#7030B8', tent:'#B060F0', eye:'#4818A0'},
+      fish:      {id:'c3f', mid:'#2888E0', hi:'#60B0F8', lo:'#1060B0', eye:'#084070'},
+    },
+    stats: {boardH:224, boardS:13, boardV:82, pieceSRange:'75-87', pieceVRange:'78-88', turtleFishGap:70}
+  },
+  {
+    key: 'vivid', cls: 'c', name: '方案V · 艳丽版', tag: '高饱和', tagColor: '#F43060',
+    desc: '基于v6，饱和度全部拉到80-92%，明度提到85-96%。糖果感最强，视觉冲击力最大。黄色仍做感知亮度补偿(V=90%)。',
+    board: '#B4BED0', frame: '#D0A040', cellBg: 'rgba(155,162,182,.3)',
+    boardScene: 'linear-gradient(180deg,#A0A8C0 0%,#B8C2D4 30%,#ACB4C8 100%)',
+    frameBg: 'linear-gradient(145deg,#D8B048,#C09838,#D0A840)',
+    gridGap: '1px',
+    pieceSize: '99%',
+    colors: {
+      starfish:  {id:'vs', mid:'#F23C5A', hi:'#FC7E93', lo:'#AD2239'},
+      turtle:    {id:'vt', mid:'#0BED7C', hi:'#47EF9B', lo:'#01A151', eye:'#034725'},
+      shell:     {id:'vh', mid:'#FCB80C', hi:'#FFCC4C', lo:'#AB7B01'},
+      jellyfish: {id:'vj', mid:'#9A2AFC', hi:'#B96BFF', lo:'#6516AB', tent:'#AE57F9', eye:'#330C55'},
+      fish:      {id:'vf', mid:'#118AFC', hi:'#51ABFF', lo:'#055BAB', eye:'#042D54'},
+    },
+    stats: {boardH:224, boardS:13, boardV:82, pieceSRange:'80-92', pieceVRange:'80-96', turtleFishGap:59}
+  },
+];
+
+// ============================================================
+//  Render
+// ============================================================
+let seed = 99;
+function rand(){seed=(seed*16807+0)%2147483647;return seed/2147483647;}
+
+const pieceFns = [starfish, turtle, shell, jellyfish, fish];
+const pieceNames = ['海星','海龟','贝壳','水母','鱼'];
+const pieceKeys = ['starfish','turtle','shell','jellyfish','fish'];
+
+const container = document.getElementById('schemes');
+
+schemes.forEach(scheme => {
+  const card = document.createElement('div');
+  card.className = 'scheme-card ' + scheme.cls;
+
+  // Header
+  let html = `<div class="scheme-header">
+    <div class="scheme-name">${scheme.name}</div>
+    <span class="scheme-tag" style="background:${scheme.tagColor}22;color:${scheme.tagColor}">${scheme.tag}</span>
+  </div>
+  <div class="scheme-desc">${scheme.desc}</div>`;
+
+  // Palette strip
+  html += `<div class="palette">`;
+  // Board + frame
+  html += `<div class="swatch swatch-sm"><div class="swatch-color" style="background:${scheme.board}"></div><div class="swatch-label">底板</div></div>`;
+  html += `<div class="swatch swatch-sm"><div class="swatch-color" style="background:${scheme.frame}"></div><div class="swatch-label">边框</div></div>`;
+  html += `<div style="width:8px"></div>`;
+  // Pieces
+  pieceKeys.forEach((k,i) => {
+    html += `<div class="swatch"><div class="swatch-color" style="background:${scheme.colors[k].mid}"></div><div class="swatch-label">${pieceNames[i]}</div></div>`;
+  });
+  html += `</div>`;
+
+  // Board
+  html += `<div class="board-scene" style="background:${scheme.boardScene}">
+    <div class="board-frame" style="background:${scheme.frameBg}">
+      <div class="board-grid" style="background:${scheme.board};${scheme.gridGap ? 'gap:'+scheme.gridGap : ''}" id="board-${scheme.key}"></div>
+    </div>
+  </div>`;
+
+  // Stats
+  html += `<div class="stats">
+    <div class="stat"><div class="stat-label">底板色相</div><div class="stat-val" style="color:${scheme.stats.boardH < 60 || scheme.stats.boardH > 300 ? '#E85050' : '#2DD4BF'}">H=${scheme.stats.boardH}° ${scheme.stats.boardH < 60 || scheme.stats.boardH > 300 ? '暖' : '冷'}</div></div>
+    <div class="stat"><div class="stat-label">棋子饱和度</div><div class="stat-val" style="color:${scheme.stats.pieceSRange.startsWith('4') ? '#E88040' : '#2DD4BF'}">S=${scheme.stats.pieceSRange}%</div></div>
+    <div class="stat"><div class="stat-label">龟-鱼色相差</div><div class="stat-val" style="color:${scheme.stats.turtleFishGap < 40 ? '#E85050' : '#2DD4BF'}">ΔH=${scheme.stats.turtleFishGap}°</div></div>
+  </div>`;
+
+  card.innerHTML = html;
+  container.appendChild(card);
+
+  // Fill board
+  seed = 99;
+  const boardEl = document.getElementById('board-' + scheme.key);
+  for(let r=0;r<8;r++){
+    for(let c=0;c<9;c++){
+      const cell = document.createElement('div');
+      cell.className = 'grid-cell';
+      cell.style.background = scheme.cellBg;
+      const idx = Math.floor(rand()*5);
+      cell.innerHTML = pieceFns[idx](scheme.colors);
+      if (scheme.pieceSize) cell.querySelector('svg').style.cssText = 'width:'+scheme.pieceSize+';height:'+scheme.pieceSize+';filter:drop-shadow(1px 2px 2px rgba(0,0,0,.25))';
+      boardEl.appendChild(cell);
+    }
+  }
+});
+</script>
+</body>
+</html>

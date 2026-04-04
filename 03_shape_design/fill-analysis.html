@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>棋子填充率分析 — 格子内区域分布</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',sans-serif;background:#0b0d10;color:#e0ddd6;min-height:100vh}
+
+.header{text-align:center;padding:40px 20px 8px}
+.header h1{font-size:22px;font-weight:700;color:#eee}
+.header p{color:#555;font-size:13px;margin-top:6px}
+
+.container{max-width:720px;margin:0 auto;padding:0 16px 60px}
+
+.section-title{font-size:15px;font-weight:700;margin:32px 0 6px;color:#eee;display:flex;align-items:center;gap:8px}
+.section-title .dot{width:8px;height:8px;border-radius:50%}
+.section-sub{font-size:12px;color:#555;margin-bottom:16px;line-height:1.7}
+
+.note{background:#13151c;border-left:3px solid #38BDF8;padding:12px 16px;border-radius:0 10px 10px 0;font-size:12px;line-height:1.8;color:#777;margin:16px 0}
+.note strong{color:#bbb;font-weight:500}
+
+/* Fill analysis cards */
+.fill-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.fill-card{display:flex;flex-direction:column;align-items:center;gap:4px;width:120px}
+.fill-box{position:relative;width:110px;height:110px;border:2px solid rgba(255,255,255,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.03)}
+.fill-box svg{width:90%;height:90%;filter:drop-shadow(1px 2px 3px rgba(0,0,0,.3))}
+.fill-box .ratio-badge{position:absolute;bottom:4px;right:4px;font-size:10px;font-weight:700;color:#38BDF8;background:rgba(0,0,0,.6);padding:2px 6px;border-radius:4px}
+.fill-name{font-size:11px;color:#aaa}
+.fill-type{font-size:10px;color:#555;font-family:monospace}
+
+/* Silhouette analysis */
+.sil-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.sil-card{display:flex;flex-direction:column;align-items:center;gap:4px;width:120px}
+.sil-box{position:relative;width:110px;height:110px;border:2px dashed rgba(255,255,255,.1);border-radius:8px;overflow:hidden}
+.sil-box canvas{width:100%;height:100%}
+.sil-label{font-size:11px;color:#aaa}
+
+/* Reference comparison */
+.ref-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
+.ref-item{display:flex;flex-direction:column;align-items:center;gap:4px}
+.ref-cell{width:80px;height:80px;border:2px solid rgba(255,255,255,.08);border-radius:6px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.02);position:relative}
+.ref-name{font-size:10px;color:#666}
+.ref-ratio{font-size:10px;color:#38BDF8;font-weight:600}
+
+/* Distribution heatmap */
+.heat-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.heat-card{display:flex;flex-direction:column;align-items:center;gap:4px;width:120px}
+.heat-box{width:110px;height:110px;border:2px solid rgba(255,255,255,.08);border-radius:8px;overflow:hidden;position:relative}
+.heat-box canvas{width:100%;height:100%}
+.heat-label{font-size:11px;color:#aaa}
+
+/* Bar chart */
+.bar-chart{display:flex;flex-direction:column;gap:8px;margin:20px 0;padding:16px;background:#12141a;border-radius:12px;border:1px solid #1e2028}
+.bar-row{display:flex;align-items:center;gap:10px}
+.bar-label{width:36px;font-size:11px;color:#888;text-align:right}
+.bar-track{flex:1;height:20px;background:rgba(255,255,255,.04);border-radius:4px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:600;color:rgba(0,0,0,.6);transition:width .5s}
+.bar-val{width:40px;font-size:11px;color:#aaa;text-align:left;font-family:monospace}
+
+/* Quadrant */
+.quad-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.quad-card{display:flex;flex-direction:column;align-items:center;gap:4px;width:120px}
+.quad-box{width:110px;height:110px;border:2px solid rgba(255,255,255,.08);border-radius:8px;position:relative;overflow:hidden}
+.quad-box .q{position:absolute;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:rgba(255,255,255,.8)}
+.quad-box .divider-h{position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(255,255,255,.15)}
+.quad-box .divider-v{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.15)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>棋子填充率与区域分布</h1>
+  <p>每种造型在格子中的实际占比和质量分布</p>
+</div>
+
+<div class="container">
+
+  <!-- Section 1: Fill ratio measurement -->
+  <div class="section-title"><span class="dot" style="background:#38BDF8"></span>填充率测量</div>
+  <div class="section-sub">将每个造型渲染为纯色剪影，计算其像素面积占格子面积的百分比</div>
+
+  <div class="fill-row" id="fill-row"></div>
+
+  <div class="bar-chart" id="bar-chart"></div>
+
+  <div class="note">
+    <strong>测量方法：</strong>将 SVG 渲染到 Canvas 上，统计非透明像素数 ÷ 总像素数。格子为正方形，造型居中放置占格子的 90%。
+  </div>
+
+  <!-- Section 2: Silhouette in cell boundary -->
+  <div class="section-title"><span class="dot" style="background:#FF7085"></span>剪影对比</div>
+  <div class="section-sub">纯黑剪影放在格子边界内，看各造型的正负空间分布</div>
+
+  <div class="sil-row" id="sil-row"></div>
+
+  <!-- Section 3: Quadrant distribution -->
+  <div class="section-title"><span class="dot" style="background:#FBBF24"></span>四象限质量分布</div>
+  <div class="section-sub">将格子分为上左/上右/下左/下右四个区域，看每个造型的质量如何分布</div>
+
+  <div class="quad-row" id="quad-row"></div>
+
+  <div class="note" style="border-left-color:#FBBF24">
+    <strong>为什么看四象限？</strong>上下宽度分析告诉我们造型的"方向感"，四象限分析告诉我们造型的"重心位置"。理想情况下，5 种造型的重心分布应该有差异——有的偏上，有的偏下，有的居中。这样棋盘上交错排列时，视觉重心也在波动。
+  </div>
+
+  <!-- Section 4: Top/Bottom half ratio -->
+  <div class="section-title"><span class="dot" style="background:#2DD4BF"></span>上下半区占比</div>
+  <div class="section-sub">格子上半部分 vs 下半部分各占多少比例——直接反映上下宽度</div>
+
+  <div class="heat-row" id="tb-row"></div>
+
+  <!-- Section 5: Reference comparison -->
+  <div class="section-title"><span class="dot" style="background:#A78BFA"></span>参考游戏观察</div>
+  <div class="section-sub">从参考截图中观察到的棋子-格子关系</div>
+
+  <div class="note" style="border-left-color:#A78BFA" id="ref-notes"></div>
+
+</div>
+
+<script>
+// ============================================================
+//  SVG Generators (same as v2 board)
+// ============================================================
+
+function starfish(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}"><defs><radialGradient id="sf-g" cx="35%" cy="30%"><stop offset="0%" stop-color="#FFB0BB"/><stop offset="40%" stop-color="#FF7085"/><stop offset="100%" stop-color="#D44A60"/></radialGradient></defs><path d="M0-38C4-30 8-22 14-16C20-20 28-28 36-30C34-22 30-14 26-8C32-4 40 0 44 4C36 6 28 6 22 6C24 14 24 22 26 32C20 26 14 20 10 14C4 20-2 26-8 32C-4 22-2 14 0 6C-6 6-14 8-22 8C-16 2-10-2-4-8C-10-14-16-22-20-30C-12-26-6-20-2-16C2-22 2-30 0-38Z" fill="url(#sf-g)"/></svg>`;
+}
+function starfishFlat(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}"><path d="M0-38C4-30 8-22 14-16C20-20 28-28 36-30C34-22 30-14 26-8C32-4 40 0 44 4C36 6 28 6 22 6C24 14 24 22 26 32C20 26 14 20 10 14C4 20-2 26-8 32C-4 22-2 14 0 6C-6 6-14 8-22 8C-16 2-10-2-4-8C-10-14-16-22-20-30C-12-26-6-20-2-16C2-22 2-30 0-38Z" fill="#FF7085"/></svg>`;
+}
+
+function turtle(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}"><defs><radialGradient id="tu-g" cx="35%" cy="30%"><stop offset="0%" stop-color="#6EECD8"/><stop offset="40%" stop-color="#2DD4BF"/><stop offset="100%" stop-color="#18A08A"/></radialGradient></defs><ellipse cx="0" cy="-32" rx="8" ry="10" fill="#28C4AE"/><ellipse cx="-34" cy="-10" rx="10" ry="7" fill="#28C4AE" transform="rotate(-25 -34 -10)"/><ellipse cx="34" cy="-10" rx="10" ry="7" fill="#28C4AE" transform="rotate(25 34 -10)"/><ellipse cx="-26" cy="24" rx="8" ry="6" fill="#28C4AE" transform="rotate(35 -26 24)"/><ellipse cx="26" cy="24" rx="8" ry="6" fill="#28C4AE" transform="rotate(-35 26 24)"/><ellipse rx="28" ry="24" fill="url(#tu-g)"/></svg>`;
+}
+function turtleFlat(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}"><ellipse cx="0" cy="-32" rx="8" ry="10" fill="#2DD4BF"/><ellipse cx="-34" cy="-10" rx="10" ry="7" fill="#2DD4BF" transform="rotate(-25 -34 -10)"/><ellipse cx="34" cy="-10" rx="10" ry="7" fill="#2DD4BF" transform="rotate(25 34 -10)"/><ellipse cx="-26" cy="24" rx="8" ry="6" fill="#2DD4BF" transform="rotate(35 -26 24)"/><ellipse cx="26" cy="24" rx="8" ry="6" fill="#2DD4BF" transform="rotate(-35 26 24)"/><ellipse rx="28" ry="24" fill="#2DD4BF"/></svg>`;
+}
+
+function shell(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}"><defs><radialGradient id="sh-g" cx="35%" cy="25%"><stop offset="0%" stop-color="#FFD866"/><stop offset="40%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#C49010"/></radialGradient></defs><path d="M0-36C-8-34-28-22-34-4C-36 12-28 28-16 36C-6 42 6 42 16 36C28 28 36 12 34-4C28-22 8-34 0-36Z" fill="url(#sh-g)"/></svg>`;
+}
+function shellFlat(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}"><path d="M0-36C-8-34-28-22-34-4C-36 12-28 28-16 36C-6 42 6 42 16 36C28 28 36 12 34-4C28-22 8-34 0-36Z" fill="#FBBF24"/></svg>`;
+}
+
+function jellyfish(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -54 100 108" width="${s}" height="${s}"><defs><radialGradient id="jf-g" cx="35%" cy="30%"><stop offset="0%" stop-color="#C8B0FF"/><stop offset="40%" stop-color="#A78BFA"/><stop offset="100%" stop-color="#7C5CD4"/></radialGradient></defs><path d="M-30 4Q-32-18-24-30Q-14-42 0-44Q14-42 24-30Q32-18 30 4Q16 10 0 6Q-16 10-30 4Z" fill="url(#jf-g)"/><path d="M-18 6Q-24 22-16 34Q-10 42-14 50" fill="none" stroke="#B89EF8" stroke-width="3.5" stroke-linecap="round" opacity=".8"/><path d="M-6 8Q-10 26-4 38Q0 46-4 52" fill="none" stroke="#B89EF8" stroke-width="3" stroke-linecap="round" opacity=".7"/><path d="M8 7Q12 24 6 36Q2 44 6 50" fill="none" stroke="#B89EF8" stroke-width="3.5" stroke-linecap="round" opacity=".8"/><path d="M20 5Q26 20 18 32Q14 40 18 48" fill="none" stroke="#B89EF8" stroke-width="2.5" stroke-linecap="round" opacity=".65"/></svg>`;
+}
+function jellyfishFlat(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -54 100 108" width="${s}" height="${s}"><path d="M-30 4Q-32-18-24-30Q-14-42 0-44Q14-42 24-30Q32-18 30 4Q16 10 0 6Q-16 10-30 4Z" fill="#A78BFA"/><path d="M-18 6Q-24 22-16 34Q-10 42-14 50" fill="none" stroke="#A78BFA" stroke-width="3.5" stroke-linecap="round"/><path d="M-6 8Q-10 26-4 38Q0 46-4 52" fill="none" stroke="#A78BFA" stroke-width="3" stroke-linecap="round"/><path d="M8 7Q12 24 6 36Q2 44 6 50" fill="none" stroke="#A78BFA" stroke-width="3.5" stroke-linecap="round"/><path d="M20 5Q26 20 18 32Q14 40 18 48" fill="none" stroke="#A78BFA" stroke-width="2.5" stroke-linecap="round"/></svg>`;
+}
+
+function fish(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}"><defs><radialGradient id="fi-g" cx="38%" cy="32%"><stop offset="0%" stop-color="#78D4FF"/><stop offset="40%" stop-color="#38BDF8"/><stop offset="100%" stop-color="#1890D0"/></radialGradient></defs><path d="M-10 20Q-18 30-22 42Q-8 36 0 38Q8 36 22 42Q18 30 10 20Z" fill="#1E9AD0"/><path d="M-4-26Q0-38 4-26" fill="#1E9AD0"/><path d="M-30-2Q-40 8-32 18" fill="none" stroke="#1E9AD0" stroke-width="5" stroke-linecap="round"/><path d="M30-2Q40 8 32 18" fill="none" stroke="#1E9AD0" stroke-width="5" stroke-linecap="round"/><path d="M0-28C14-26 28-16 34-2C38 10 32 20 18 26C8 30 4 28 0 28C-4 28-8 30-18 26C-32 20-38 10-34-2C-28-16-14-26 0-28Z" fill="url(#fi-g)"/></svg>`;
+}
+function fishFlat(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}"><path d="M-10 20Q-18 30-22 42Q-8 36 0 38Q8 36 22 42Q18 30 10 20Z" fill="#38BDF8"/><path d="M-4-26Q0-38 4-26" fill="#38BDF8"/><path d="M-30-2Q-40 8-32 18" fill="none" stroke="#38BDF8" stroke-width="5" stroke-linecap="round"/><path d="M30-2Q40 8 32 18" fill="none" stroke="#38BDF8" stroke-width="5" stroke-linecap="round"/><path d="M0-28C14-26 28-16 34-2C38 10 32 20 18 26C8 30 4 28 0 28C-4 28-8 30-18 26C-32 20-38 10-34-2C-28-16-14-26 0-28Z" fill="#38BDF8"/></svg>`;
+}
+
+const pieces = [
+  { name:'海星', fn:starfish, flat:starfishFlat, color:'#FF7085' },
+  { name:'海龟', fn:turtle,   flat:turtleFlat,   color:'#2DD4BF' },
+  { name:'贝壳', fn:shell,    flat:shellFlat,    color:'#FBBF24' },
+  { name:'水母', fn:jellyfish, flat:jellyfishFlat, color:'#A78BFA' },
+  { name:'鱼',   fn:fish,     flat:fishFlat,     color:'#38BDF8' },
+];
+
+// ============================================================
+//  Measure fill ratio via Canvas
+// ============================================================
+
+const SIZE = 200; // canvas resolution
+
+function measureFill(svgFn) {
+  return new Promise(resolve => {
+    const canvas = document.createElement('canvas');
+    canvas.width = SIZE; canvas.height = SIZE;
+    const ctx = canvas.getContext('2d');
+
+    let svgStr = svgFn(SIZE);
+    // Ensure xmlns for standalone SVG rendering
+    if (!svgStr.includes('xmlns')) {
+      svgStr = svgStr.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ');
+    }
+    const url = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgStr)));
+    const img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0,0,SIZE,SIZE);
+      ctx.drawImage(img,0,0,SIZE,SIZE);
+
+      const data = ctx.getImageData(0,0,SIZE,SIZE).data;
+      let total = 0, topHalf = 0, botHalf = 0;
+      let tl=0,tr=0,bl=0,br=0;
+      const mid = SIZE/2;
+
+      for (let y=0; y<SIZE; y++) {
+        for (let x=0; x<SIZE; x++) {
+          const a = data[(y*SIZE+x)*4+3];
+          if (a > 20) {
+            total++;
+            if (y < mid) topHalf++; else botHalf++;
+            if (y < mid && x < mid) tl++;
+            if (y < mid && x >= mid) tr++;
+            if (y >= mid && x < mid) bl++;
+            if (y >= mid && x >= mid) br++;
+          }
+        }
+      }
+
+      const area = SIZE*SIZE;
+      resolve({
+        fill: total/area,
+        topRatio: topHalf/Math.max(total,1),
+        botRatio: botHalf/Math.max(total,1),
+        quads: {tl:tl/Math.max(total,1), tr:tr/Math.max(total,1), bl:bl/Math.max(total,1), br:br/Math.max(total,1)},
+        canvas
+      });
+    };
+    img.src = url;
+  });
+}
+
+// ============================================================
+//  Render
+// ============================================================
+
+async function render() {
+  const results = [];
+
+  for (const p of pieces) {
+    const r = await measureFill(p.flat);
+    results.push({...p, ...r});
+  }
+
+  // --- Fill ratio cards ---
+  const fillRow = document.getElementById('fill-row');
+  results.forEach(r => {
+    const d = document.createElement('div');
+    d.className = 'fill-card';
+    d.innerHTML = `
+      <div class="fill-box">
+        ${r.fn(96)}
+        <div class="ratio-badge">${(r.fill*100).toFixed(0)}%</div>
+      </div>
+      <div class="fill-name">${r.name}</div>`;
+    fillRow.appendChild(d);
+  });
+
+  // --- Bar chart ---
+  const barChart = document.getElementById('bar-chart');
+  const maxFill = Math.max(...results.map(r=>r.fill));
+  results.sort((a,b)=>b.fill-a.fill).forEach(r => {
+    const pct = (r.fill*100).toFixed(1);
+    const barW = (r.fill/maxFill*100).toFixed(0);
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    row.innerHTML = `
+      <div class="bar-label">${r.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${barW}%;background:${r.color}">${pct}%</div></div>`;
+    barChart.appendChild(row);
+  });
+  // Re-sort back
+  results.sort((a,b)=>pieces.findIndex(p=>p.name===a.name)-pieces.findIndex(p=>p.name===b.name));
+
+  // --- Silhouette cards ---
+  const silRow = document.getElementById('sil-row');
+  results.forEach(r => {
+    const d = document.createElement('div');
+    d.className = 'sil-card';
+    // Draw silhouette on black background
+    const canvas = document.createElement('canvas');
+    canvas.width = SIZE; canvas.height = SIZE;
+    const ctx = canvas.getContext('2d');
+    // Draw border
+    ctx.fillStyle = '#1a1a22';
+    ctx.fillRect(0,0,SIZE,SIZE);
+    // Draw crosshair
+    ctx.strokeStyle = 'rgba(255,255,255,.08)';
+    ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(SIZE/2,0); ctx.lineTo(SIZE/2,SIZE); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,SIZE/2); ctx.lineTo(SIZE,SIZE/2); ctx.stroke();
+    ctx.setLineDash([]);
+    // Copy shape
+    const data = r.canvas.getContext('2d').getImageData(0,0,SIZE,SIZE);
+    const out = ctx.getImageData(0,0,SIZE,SIZE);
+    for (let i=0;i<data.data.length;i+=4) {
+      if (data.data[i+3]>20) {
+        out.data[i]=out.data[i+1]=out.data[i+2]=255;
+        out.data[i+3]=180;
+      }
+    }
+    ctx.putImageData(out,0,0);
+
+    const box = document.createElement('div');
+    box.className = 'sil-box';
+    canvas.style.cssText = 'width:100%;height:100%';
+    box.appendChild(canvas);
+    d.appendChild(box);
+    d.innerHTML += `<div class="sil-label">${r.name} · ${(r.fill*100).toFixed(0)}%</div>`;
+    silRow.appendChild(d);
+  });
+
+  // --- Quadrant cards ---
+  const quadRow = document.getElementById('quad-row');
+  results.forEach(r => {
+    const d = document.createElement('div');
+    d.className = 'quad-card';
+    const q = r.quads;
+    // Color intensity based on percentage
+    const cq = (v) => {
+      const a = Math.round(v * 400);
+      return `rgba(${hexToRgb(r.color)},${Math.min(a/255,.85).toFixed(2)})`;
+    };
+    d.innerHTML = `
+      <div class="quad-box">
+        <div class="q" style="top:0;left:0;width:50%;height:50%;background:${cq(q.tl)}">${(q.tl*100).toFixed(0)}%</div>
+        <div class="q" style="top:0;right:0;width:50%;height:50%;background:${cq(q.tr)}">${(q.tr*100).toFixed(0)}%</div>
+        <div class="q" style="bottom:0;left:0;width:50%;height:50%;background:${cq(q.bl)}">${(q.bl*100).toFixed(0)}%</div>
+        <div class="q" style="bottom:0;right:0;width:50%;height:50%;background:${cq(q.br)}">${(q.br*100).toFixed(0)}%</div>
+        <div class="divider-h"></div>
+        <div class="divider-v"></div>
+      </div>
+      <div class="heat-label">${r.name}</div>
+      <div style="font-size:10px;color:#555">上${(r.topRatio*100).toFixed(0)}% / 下${(r.botRatio*100).toFixed(0)}%</div>`;
+    quadRow.appendChild(d);
+  });
+
+  // --- Top/Bottom half visualization ---
+  const tbRow = document.getElementById('tb-row');
+  results.forEach(r => {
+    const d = document.createElement('div');
+    d.className = 'heat-card';
+    const topPct = (r.topRatio*100).toFixed(0);
+    const botPct = (r.botRatio*100).toFixed(0);
+    const bias = r.topRatio > 0.55 ? '↑ 偏上' : r.topRatio < 0.45 ? '↓ 偏下' : '= 居中';
+    d.innerHTML = `
+      <div class="heat-box" style="display:flex;flex-direction:column">
+        <div style="flex:1;background:rgba(${hexToRgb(r.color)},${(r.topRatio*.7).toFixed(2)});display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:rgba(0,0,0,.5)">${topPct}%</div>
+        <div style="height:1px;background:rgba(255,255,255,.2)"></div>
+        <div style="flex:1;background:rgba(${hexToRgb(r.color)},${(r.botRatio*.7).toFixed(2)});display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:rgba(0,0,0,.5)">${botPct}%</div>
+      </div>
+      <div class="heat-label">${r.name}</div>
+      <div style="font-size:10px;color:#38BDF8">${bias}</div>`;
+    tbRow.appendChild(d);
+  });
+
+  // --- Reference notes ---
+  document.getElementById('ref-notes').innerHTML = `
+    <strong>从参考截图观察到的填充规律：</strong><br><br>
+    <strong>1. 基线造型填充率最高</strong> — 每款游戏中，方块/立方体都是填充率最高的造型（约 80-90%），其他造型低 10-20 个百分点。<br><br>
+    <strong>2. 棋子尺寸约为格子的 85-90%</strong> — 棋子最宽处约占格子宽度的 85-90%，留出 10-15% 作为相邻棋子间的间距。<br><br>
+    <strong>3. Royal Match 棋子更大更密</strong> — 和 Candy Crush 对比，Royal Match 的棋子更满，格子间距更小，整体更"实"。Candy Crush 因为造型更多变（菱形、豆形等），空隙感更强。<br><br>
+    <strong>4. 复杂造型的负空间是辨识力来源</strong> — 星形的角间凹陷、蝴蝶结的束腰、月牙的内弧——这些负空间（棋子不到的区域）恰恰是让造型可辨的关键。填充率不是越高越好。<br><br>
+    <strong>5. 填充率差异控制在 15-25 个百分点以内</strong> — 同一游戏内，最满的造型和最空的造型之间差距不超过约 25 个百分点。差异太大会让某些造型显得"瘦小"。
+  `;
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+render();
+</script>
+</body>
+</html>

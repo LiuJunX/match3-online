@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>水晶海洋 · 造型棋盘 v2（鱼替换水滴）</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',sans-serif;background:#0b0d10;color:#e0ddd6;min-height:100vh}
+
+.header{text-align:center;padding:40px 20px 8px}
+.header h1{font-size:24px;font-weight:700;background:linear-gradient(135deg,#FF7085,#2DD4BF,#FBBF24,#A78BFA,#38BDF8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header p{color:#555;font-size:13px;margin-top:6px}
+
+.container{max-width:600px;margin:0 auto;padding:0 12px 60px}
+
+.section-title{font-size:15px;font-weight:700;margin:28px 0 6px;color:#eee}
+.section-sub{font-size:12px;color:#555;margin-bottom:16px;line-height:1.6}
+
+.note{background:#13151c;border-left:3px solid #2DD4BF;padding:12px 16px;border-radius:0 10px 10px 0;font-size:12px;line-height:1.8;color:#777;margin:16px 0}
+.note strong{color:#bbb;font-weight:500}
+
+/* Pieces showcase */
+.showcase{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.showcase-item{display:flex;flex-direction:column;align-items:center;gap:8px}
+.showcase-item svg{filter:drop-shadow(2px 3px 4px rgba(0,0,0,.35))}
+.showcase-label{font-size:11px;color:#888}
+.showcase-tag{font-size:10px;color:#555;font-family:monospace}
+
+/* Board */
+.board-scene{background:linear-gradient(180deg,#C8B8A4 0%,#E8D5C4 30%,#D4C8B4 100%);border-radius:18px;padding:10px;margin:20px 0;position:relative;overflow:hidden}
+.board-scene::before{content:'';position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(255,255,255,.08),transparent);pointer-events:none;border-radius:18px 18px 0 0}
+.board-frame{background:linear-gradient(145deg,#7AAFA5,#5D998F,#6BA09A);border-radius:14px;padding:5px;box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 2px 8px rgba(0,0,0,.3)}
+.board-grid{background:#D8CCC0;border-radius:10px;padding:4px;display:grid;gap:2px;box-shadow:inset 0 1px 3px rgba(0,0,0,.1)}
+.grid-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;border-radius:6px;background:rgba(190,178,164,.3)}
+.grid-cell svg{width:88%;height:88%;transition:transform .15s;filter:drop-shadow(1px 2px 2px rgba(0,0,0,.25))}
+.grid-cell:hover svg{transform:scale(1.1)}
+
+/* Profile analysis */
+.profile-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.profile-card{display:flex;flex-direction:column;align-items:center;gap:4px;width:90px;padding:12px 6px;background:#12141a;border-radius:12px;border:1px solid #1e2028}
+.profile-card svg{filter:drop-shadow(1px 2px 3px rgba(0,0,0,.3))}
+.profile-name{font-size:11px;color:#aaa}
+.profile-type{font-size:10px;color:#555;font-family:monospace}
+
+/* Compare */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+.compare-card{background:#12141a;border-radius:14px;padding:16px;border:1px solid #1e2028}
+.compare-title{font-size:12px;color:#666;text-align:center;margin-bottom:10px}
+.compare-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>造型棋盘 v2 — 鱼替换水滴</h1>
+  <p>优化上下宽度分布：○ ○ △ ▽ ◇ 五种轮廓全不同</p>
+</div>
+
+<div class="container">
+
+  <div class="section-title">上下宽度分布</div>
+  <div class="section-sub">每种造型的上下宽度关系各不相同，棋盘上自然产生波浪节奏</div>
+
+  <div class="profile-row" id="profile-row"></div>
+
+  <div class="note">
+    <strong>v1 → v2 变化：</strong>水滴(△)和贝壳(△)上下宽度重复。替换为鱼(◇)后，5种造型的上下宽度全部不同：<br>
+    海龟 ○等宽·全凸 / 海星 ○等宽·凹凸交替 / 贝壳 △上窄下宽 / 水母 ▽上宽下窄 / 鱼 ◇中间宽两端窄
+  </div>
+
+  <!-- Showcase -->
+  <div class="section-title">五个造型 — 放大细节</div>
+  <div class="showcase" id="showcase"></div>
+
+  <!-- Compare v1 vs v2 -->
+  <div class="section-title">v1 vs v2 对比</div>
+  <div class="compare">
+    <div class="compare-card">
+      <div class="compare-title" style="color:#666">v1 · 水滴</div>
+      <div class="compare-row" id="v1-pieces"></div>
+    </div>
+    <div class="compare-card">
+      <div class="compare-title" style="color:#38BDF8">v2 · 鱼</div>
+      <div class="compare-row" id="v2-pieces"></div>
+    </div>
+  </div>
+
+  <!-- Full board -->
+  <div class="section-title">完整棋盘</div>
+  <div class="section-sub">9×8 网格，悬停放大查看</div>
+
+  <div class="board-scene">
+    <div class="board-frame">
+      <div class="board-grid" id="game-board" style="grid-template-columns:repeat(9,1fr)"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+//  Shape SVG generators
+// ============================================================
+
+function starfish(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}">
+    <defs>
+      <radialGradient id="sf-g" cx="35%" cy="30%">
+        <stop offset="0%" stop-color="#FFB0BB"/>
+        <stop offset="40%" stop-color="#FF7085"/>
+        <stop offset="100%" stop-color="#D44A60"/>
+      </radialGradient>
+    </defs>
+    <path d="M0-38C4-30 8-22 14-16C20-20 28-28 36-30C34-22 30-14 26-8C32-4 40 0 44 4C36 6 28 6 22 6C24 14 24 22 26 32C20 26 14 20 10 14C4 20-2 26-8 32C-4 22-2 14 0 6C-6 6-14 8-22 8C-16 2-10-2-4-8C-10-14-16-22-20-30C-12-26-6-20-2-16C2-22 2-30 0-38Z" fill="url(#sf-g)"/>
+    <path d="M0-38C-2-30-2-22-2-16C-6-20-12-26-20-30C-16-22-10-14-4-8C-10-2-16 2-22 8C-14 8-6 6 0 6C-2 14-4 22-8 32C-2 26 4 20 10 14C14 20 20 26 26 32C24 22 24 14 22 6" fill="rgba(0,0,0,.12)"/>
+    <path d="M0-38C4-30 8-22 14-16C20-20 28-28 36-30C34-22 30-14 26-8C32-4 40 0 44 4" fill="rgba(255,255,255,.15)"/>
+    <ellipse cx="-10" cy="-14" rx="6" ry="8" fill="rgba(255,255,255,.22)" transform="rotate(-20 -10 -14)"/>
+  </svg>`;
+}
+
+function turtle(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}">
+    <defs>
+      <radialGradient id="tu-g" cx="35%" cy="30%">
+        <stop offset="0%" stop-color="#6EECD8"/>
+        <stop offset="40%" stop-color="#2DD4BF"/>
+        <stop offset="100%" stop-color="#18A08A"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="0" cy="-32" rx="8" ry="10" fill="#28C4AE"/>
+    <ellipse cx="-34" cy="-10" rx="10" ry="7" fill="#28C4AE" transform="rotate(-25 -34 -10)"/>
+    <ellipse cx="34" cy="-10" rx="10" ry="7" fill="#28C4AE" transform="rotate(25 34 -10)"/>
+    <ellipse cx="-26" cy="24" rx="8" ry="6" fill="#28C4AE" transform="rotate(35 -26 24)"/>
+    <ellipse cx="26" cy="24" rx="8" ry="6" fill="#28C4AE" transform="rotate(-35 26 24)"/>
+    <ellipse rx="28" ry="24" fill="url(#tu-g)"/>
+    <ellipse rx="28" ry="24" fill="rgba(0,0,0,.1)" clip-path="inset(0 0 0 55%)"/>
+    <ellipse rx="18" ry="14" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/>
+    <circle cx="-8" cy="-8" r="5" fill="rgba(0,0,0,.08)"/>
+    <circle cx="8" cy="-6" r="5" fill="rgba(0,0,0,.08)"/>
+    <circle cx="0" cy="6" r="5.5" fill="rgba(0,0,0,.08)"/>
+    <circle cx="-12" cy="6" r="4" fill="rgba(0,0,0,.06)"/>
+    <circle cx="12" cy="6" r="4" fill="rgba(0,0,0,.06)"/>
+    <ellipse cx="-8" cy="-12" rx="5" ry="7" fill="rgba(255,255,255,.18)" transform="rotate(-15 -8 -12)"/>
+    <circle cx="-4" cy="-30" r="2.5" fill="#0D5C4E"/>
+    <circle cx="4" cy="-30" r="2.5" fill="#0D5C4E"/>
+    <circle cx="-3.5" cy="-30.5" r="1" fill="#fff" opacity=".5"/>
+    <circle cx="4.5" cy="-30.5" r="1" fill="#fff" opacity=".5"/>
+  </svg>`;
+}
+
+function shell(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}">
+    <defs>
+      <radialGradient id="sh-g" cx="35%" cy="25%">
+        <stop offset="0%" stop-color="#FFD866"/>
+        <stop offset="40%" stop-color="#FBBF24"/>
+        <stop offset="100%" stop-color="#C49010"/>
+      </radialGradient>
+    </defs>
+    <path d="M0-36C-8-34-28-22-34-4C-36 12-28 28-16 36C-6 42 6 42 16 36C28 28 36 12 34-4C28-22 8-34 0-36Z" fill="url(#sh-g)"/>
+    <path d="M0-36C-8-34-28-22-34-4C-36 12-28 28-16 36C-6 42 0 38 0 0Z" fill="rgba(0,0,0,.12)"/>
+    <path d="M0-36Q-12 0-16 36" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/>
+    <path d="M0-36Q-20-4-30 20" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.2"/>
+    <path d="M0-36Q4 0 6 38" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/>
+    <path d="M0-36Q16-4 28 16" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.2"/>
+    <path d="M0-36Q24-10 34-2" fill="none" stroke="rgba(0,0,0,.06)" stroke-width="1"/>
+    <ellipse cx="-10" cy="-16" rx="6" ry="10" fill="rgba(255,255,255,.2)" transform="rotate(-10 -10 -16)"/>
+    <circle cx="-6" cy="-24" r="3" fill="rgba(255,255,255,.15)"/>
+  </svg>`;
+}
+
+function jellyfish(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -54 100 108" width="${s}" height="${s}">
+    <defs>
+      <radialGradient id="jf-g" cx="35%" cy="30%">
+        <stop offset="0%" stop-color="#C8B0FF"/>
+        <stop offset="40%" stop-color="#A78BFA"/>
+        <stop offset="100%" stop-color="#7C5CD4"/>
+      </radialGradient>
+    </defs>
+    <path d="M-30 4Q-32-18-24-30Q-14-42 0-44Q14-42 24-30Q32-18 30 4Q16 10 0 6Q-16 10-30 4Z" fill="url(#jf-g)"/>
+    <path d="M-30 4Q-32-18-24-30Q-14-42 0-44Q0-10-30 4Z" fill="rgba(0,0,0,.1)"/>
+    <ellipse cx="-10" cy="-22" rx="6" ry="9" fill="rgba(255,255,255,.2)" transform="rotate(-12 -10 -22)"/>
+    <path d="M-18 6Q-24 22-16 34Q-10 42-14 50" fill="none" stroke="#B89EF8" stroke-width="3.5" stroke-linecap="round" opacity=".8"/>
+    <path d="M-6 8Q-10 26-4 38Q0 46-4 52" fill="none" stroke="#B89EF8" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+    <path d="M8 7Q12 24 6 36Q2 44 6 50" fill="none" stroke="#B89EF8" stroke-width="3.5" stroke-linecap="round" opacity=".8"/>
+    <path d="M20 5Q26 20 18 32Q14 40 18 48" fill="none" stroke="#B89EF8" stroke-width="2.5" stroke-linecap="round" opacity=".65"/>
+    <circle cx="-8" cy="-14" r="3.5" fill="rgba(255,255,255,.6)"/>
+    <circle cx="8" cy="-14" r="3.5" fill="rgba(255,255,255,.6)"/>
+    <circle cx="-7" cy="-14.5" r="1.8" fill="#5C3CAA"/>
+    <circle cx="9" cy="-14.5" r="1.8" fill="#5C3CAA"/>
+  </svg>`;
+}
+
+// OLD: water drop (kept for v1 comparison)
+function drop(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -54 100 108" width="${s}" height="${s}">
+    <defs>
+      <radialGradient id="dr-g" cx="35%" cy="35%">
+        <stop offset="0%" stop-color="#78D4FF"/>
+        <stop offset="40%" stop-color="#38BDF8"/>
+        <stop offset="100%" stop-color="#1890D0"/>
+      </radialGradient>
+    </defs>
+    <path d="M0-44Q-6-32-22-8Q-34 10-32 24Q-28 36-18 42Q-8 48 0 48Q8 48 18 42Q28 36 32 24Q34 10 22-8Q6-32 0-44Z" fill="url(#dr-g)"/>
+    <path d="M0-44Q-6-32-22-8Q-34 10-32 24Q-28 36-18 42Q-8 48 0 48Q0 10 0-44Z" fill="rgba(0,0,0,.1)"/>
+    <ellipse cx="-10" cy="4" rx="5" ry="10" fill="rgba(255,255,255,.22)" transform="rotate(-12 -10 4)"/>
+    <circle cx="-6" cy="-10" r="3.5" fill="rgba(255,255,255,.18)"/>
+  </svg>`;
+}
+
+// NEW: fish — ◇ profile, middle-wide, concave tail fork
+function fish(size) {
+  const s = size || 52;
+  return `<svg viewBox="-50 -50 100 100" width="${s}" height="${s}">
+    <defs>
+      <radialGradient id="fi-g" cx="38%" cy="32%">
+        <stop offset="0%" stop-color="#78D4FF"/>
+        <stop offset="40%" stop-color="#38BDF8"/>
+        <stop offset="100%" stop-color="#1890D0"/>
+      </radialGradient>
+    </defs>
+    <!-- Tail fin (behind body) -->
+    <path d="M-10 20Q-18 30-22 42Q-8 36 0 38Q8 36 22 42Q18 30 10 20Z" fill="#1E9AD0"/>
+    <!-- Dorsal fin -->
+    <path d="M-4-26Q0-38 4-26" fill="#1E9AD0"/>
+    <!-- Pectoral fins -->
+    <path d="M-30-2Q-40 8-32 18" fill="none" stroke="#1E9AD0" stroke-width="5" stroke-linecap="round"/>
+    <path d="M30-2Q40 8 32 18" fill="none" stroke="#1E9AD0" stroke-width="5" stroke-linecap="round"/>
+    <!-- Main body -->
+    <path d="M0-28C14-26 28-16 34-2C38 10 32 20 18 26C8 30 4 28 0 28C-4 28-8 30-18 26C-32 20-38 10-34-2C-28-16-14-26 0-28Z" fill="url(#fi-g)"/>
+    <!-- Shadow half -->
+    <path d="M0-28C-14-26-28-16-34-2C-38 10-32 20-18 26C-8 30-4 28 0 28Z" fill="rgba(0,0,0,.1)"/>
+    <!-- Body stripe -->
+    <path d="M-18 4C-10 0 10 0 18 4" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="2"/>
+    <path d="M-14 12C-6 9 6 9 14 12" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1.5"/>
+    <!-- Highlight -->
+    <ellipse cx="-10" cy="-14" rx="5" ry="8" fill="rgba(255,255,255,.22)" transform="rotate(-12 -10 -14)"/>
+    <circle cx="-6" cy="-20" r="2.5" fill="rgba(255,255,255,.16)"/>
+    <!-- Eyes -->
+    <circle cx="-10" cy="-8" r="4.5" fill="rgba(255,255,255,.65)"/>
+    <circle cx="10" cy="-8" r="4.5" fill="rgba(255,255,255,.65)"/>
+    <circle cx="-9" cy="-8.5" r="2.2" fill="#0C5F8A"/>
+    <circle cx="11" cy="-8.5" r="2.2" fill="#0C5F8A"/>
+    <circle cx="-8.5" cy="-9" r=".9" fill="#fff" opacity=".6"/>
+    <circle cx="11.5" cy="-9" r=".9" fill="#fff" opacity=".6"/>
+  </svg>`;
+}
+
+// ============================================================
+//  Data
+// ============================================================
+
+const piecesV2 = [
+  { name:'海星', fn:starfish, color:'#FF7085', profile:'○ 等宽·凹凸' },
+  { name:'海龟', fn:turtle,   color:'#2DD4BF', profile:'○ 等宽·全凸' },
+  { name:'贝壳', fn:shell,    color:'#FBBF24', profile:'△ 上窄下宽' },
+  { name:'水母', fn:jellyfish, color:'#A78BFA', profile:'▽ 上宽下窄' },
+  { name:'鱼',   fn:fish,     color:'#38BDF8', profile:'◇ 中宽两端窄' },
+];
+
+const piecesV1 = [
+  { name:'海星', fn:starfish, color:'#FF7085', profile:'○' },
+  { name:'海龟', fn:turtle,   color:'#2DD4BF', profile:'○' },
+  { name:'贝壳', fn:shell,    color:'#FBBF24', profile:'△' },
+  { name:'水母', fn:jellyfish, color:'#A78BFA', profile:'▽' },
+  { name:'水滴', fn:drop,     color:'#38BDF8', profile:'△ 重复!' },
+];
+
+// ============================================================
+//  Render
+// ============================================================
+
+// Profile analysis row
+const profileRow = document.getElementById('profile-row');
+piecesV2.forEach(p => {
+  const d = document.createElement('div');
+  d.className = 'profile-card';
+  d.innerHTML = p.fn(48) + `<div class="profile-name">${p.name}</div><div class="profile-type">${p.profile}</div>`;
+  profileRow.appendChild(d);
+});
+
+// Large showcase
+const showcase = document.getElementById('showcase');
+piecesV2.forEach(p => {
+  const d = document.createElement('div');
+  d.className = 'showcase-item';
+  d.innerHTML = p.fn(90) + `<div class="showcase-label">${p.name}</div><div class="showcase-tag">${p.profile}</div>`;
+  showcase.appendChild(d);
+});
+
+// v1 vs v2 comparison
+const v1Row = document.getElementById('v1-pieces');
+piecesV1.forEach(p => {
+  const d = document.createElement('div');
+  d.className = 'showcase-item';
+  d.style.margin = '0';
+  const tag = p.profile.includes('重复') ? `<div style="font-size:10px;color:#E24B4A">${p.profile}</div>` : `<div style="font-size:10px;color:#555">${p.profile}</div>`;
+  d.innerHTML = p.fn(40) + `<div style="font-size:10px;color:#666">${p.name}</div>` + tag;
+  v1Row.appendChild(d);
+});
+
+const v2Row = document.getElementById('v2-pieces');
+piecesV2.forEach(p => {
+  const d = document.createElement('div');
+  d.className = 'showcase-item';
+  d.style.margin = '0';
+  d.innerHTML = p.fn(40) + `<div style="font-size:10px;color:#aaa">${p.name}</div><div style="font-size:10px;color:#38BDF8">${p.profile.split(' ')[0]}</div>`;
+  v2Row.appendChild(d);
+});
+
+// Game board — seeded random for consistency
+let seed = 42;
+function rand() { seed=(seed*16807+0)%2147483647; return seed/2147483647; }
+
+const board = document.getElementById('game-board');
+const ROWS = 8, COLS = 9;
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell';
+    const p = piecesV2[Math.floor(rand() * piecesV2.length)];
+    cell.innerHTML = p.fn();
+    board.appendChild(cell);
+  }
+}
+</script>
+</body>
+</html>

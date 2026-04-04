@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>水晶海洋 · 完整场景设计</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',sans-serif;background:#080a0e;min-height:100vh;display:flex;justify-content:center;overflow-x:hidden}
+
+.scene{width:100%;max-width:560px;position:relative;overflow:hidden;aspect-ratio:3/4}
+
+/* =============================================
+   第零层：整体氛围光
+   "黄金时刻"暖光笼罩全局
+   心理学：黄昏光线让人放松、留恋、不想离开
+   ============================================= */
+.atmosphere{position:absolute;inset:0;pointer-events:none;z-index:50;
+  background:radial-gradient(ellipse 80% 40% at 70% 15%,
+    rgba(255,200,120,.08) 0%,transparent 70%
+  );mix-blend-mode:screen}
+
+/* =============================================
+   第一层：天空（最远 — 无限远）
+   大气透视原理：越远越蓝、越淡、越模糊
+   色彩心理：蓝色=平静、信任、开阔
+   顶部深蓝→中段天蓝→地平线处暖黄（日落余晖）
+   ============================================= */
+.sky{position:absolute;inset:0;
+  background:linear-gradient(180deg,
+    #0e3d6e 0%,
+    #1a5a8e 10%,
+    #3088b8 22%,
+    #58b0d4 34%,
+    #88cce0 44%,
+    #c8dcd0 52%,
+    #d8c8a0 58%,
+    #c4b488 63%,
+    #88aa6e 72%,
+    #5a9848 82%,
+    #408a32 100%
+  )}
+
+/* 云层：高层卷云+低层积云，增加天空层次 */
+.clouds{position:absolute;top:0;left:0;right:0;height:50%;pointer-events:none}
+.cloud{position:absolute;border-radius:50%}
+/* 高层卷云：薄、拉长、半透明 */
+.cloud-high{background:rgba(255,255,255,.18);filter:blur(12px)}
+/* 低层积云：厚实、白、有体积感 */
+.cloud-low{background:rgba(255,255,255,.45);filter:blur(8px)}
+/* 地平线处的薄雾 */
+.haze{position:absolute;top:54%;left:0;right:0;height:10%;
+  background:linear-gradient(180deg,transparent,rgba(200,200,180,.15),transparent);
+  filter:blur(6px)}
+
+/* =============================================
+   第二层：远景海面（2-5公里外）
+   大气透视：颜色发灰发蓝，几乎没有细节
+   心理学：海面=辽阔、自由、想象空间
+   只需要暗示"那里有海"，不需要画浪花
+   ============================================= */
+.sea-far{position:absolute;top:58%;left:0;right:0;height:8%;
+  background:linear-gradient(180deg,
+    rgba(80,140,170,.25) 0%,
+    rgba(70,130,160,.35) 40%,
+    rgba(60,120,140,.2) 80%,
+    transparent 100%
+  )}
+/* 海平线的光带：日光在海面反射的一条亮线 */
+.sea-glint{position:absolute;top:58.5%;left:15%;right:15%;height:1.5px;
+  background:linear-gradient(90deg,transparent,rgba(255,230,180,.2),rgba(255,240,200,.35),rgba(255,230,180,.2),transparent)}
+
+/* =============================================
+   第三层：中景海岸悬崖（500米-1公里）
+   远处可见的海岸线轮廓，暗示世界的边界
+   大气透视：比近景灰、蓝，细节模糊
+   心理学：远景轮廓给画面"边界感"和"故事感"
+   ============================================= */
+.cliff-far-left{position:absolute;top:56%;left:-5%;width:32%;height:18%;
+  background:linear-gradient(160deg,#7a9a78,#6a8a6e);
+  clip-path:polygon(0 100%,15% 40%,35% 25%,55% 30%,70% 50%,85% 45%,100% 60%,100% 100%);
+  opacity:.35;filter:blur(3px)}
+.cliff-far-right{position:absolute;top:57%;right:-5%;width:28%;height:16%;
+  background:linear-gradient(200deg,#7a9878,#6a886c);
+  clip-path:polygon(0 65%,15% 45%,40% 30%,60% 35%,80% 25%,100% 40%,100% 100%,0 100%);
+  opacity:.3;filter:blur(3px)}
+
+/* =============================================
+   第四层：中近景绿地（50-200米）
+   棋盘两侧可见的山坡/绿化带
+   开始出现颜色饱和度，但仍比前景淡
+   心理学：绿色=生命、自然、安全感
+   ============================================= */
+.hillside{position:absolute;top:64%;left:0;right:0;height:16%;
+  background:linear-gradient(180deg,
+    #88aa6e 0%,
+    #6e9a56 40%,
+    #5a8a46 100%
+  );clip-path:polygon(
+    0 40%,5% 30%,12% 35%,20% 20%,30% 28%,
+    40% 15%,50% 22%,60% 12%,70% 25%,
+    80% 18%,88% 32%,95% 26%,100% 35%,100% 100%,0 100%
+  )}
+/* 山坡上的树丛剪影 */
+.trees-mid{position:absolute;top:61%;left:0;right:0;height:12%;opacity:.2}
+.tree-silhouette{position:absolute;background:#4a7a3a;border-radius:50% 50% 45% 45%}
+
+/* =============================================
+   第五层：近景花园平台（脚下）
+   这是棋盘"坐落"的地方
+   参考原图：城堡前的花园露台
+   我们的设定：海边庄园的花园露台
+
+   构图作用：
+   - 草坪提供稳定的"地面感"
+   - 石板路形成纵向引导线 → 指向棋盘
+   - 两侧灌木形成U形环抱 → 收拢视线到中央
+   - 花丛增加色彩点缀但不抢主角
+   心理学：精心维护的花园=安全、舒适、"有人在照料这里"
+   ============================================= */
+.garden{position:absolute;bottom:0;left:0;right:0;height:18%}
+/* 草坪 */
+.lawn{position:absolute;inset:0;
+  background:linear-gradient(180deg,
+    #5ea848 0%,
+    #4e9a3c 25%,
+    #408a32 50%,
+    #367a2a 80%,
+    #2e6e24 100%
+  )}
+/* 草坪顶部草皮过渡（和山坡衔接） */
+.lawn-edge{position:absolute;top:-6px;left:0;right:0;height:10px;
+  background:linear-gradient(180deg,rgba(90,160,70,.0),#5ea848);filter:blur(2px)}
+
+/* 石砌矮墙 — 花园和山坡的分界
+   参考图中城堡花园的石头围栏
+   作用：给棋盘一个"舞台"的感觉，像放在一个平台上 */
+.stone-wall{position:absolute;top:-10px;left:6%;right:6%;height:14px;
+  background:linear-gradient(180deg,#c4b49a,#b0a088,#a09078);
+  border-radius:3px 3px 0 0;
+  box-shadow:0 2px 4px rgba(0,0,0,.15)}
+.stone-wall::before{content:'';position:absolute;top:-5px;left:-1%;right:-1%;height:7px;
+  background:linear-gradient(180deg,#d4c4aa,#c0b094);border-radius:4px;
+  box-shadow:0 1px 2px rgba(0,0,0,.1)}
+/* 墙上的石头纹理 */
+.stone-wall::after{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent,transparent 18px,rgba(0,0,0,.06) 18px,rgba(0,0,0,.06) 19px);
+  border-radius:3px}
+
+/* 石板路 — 纵向引导线
+   从画面最底部延伸向上，越远越窄（透视收缩）
+   引导玩家视线从"脚下"移向"棋盘" */
+.stone-path{position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:26%;height:92%;
+  clip-path:polygon(32% 0%,68% 0%,84% 100%,16% 100%)}
+.stone-path-fill{width:100%;height:100%;
+  background:linear-gradient(180deg,
+    rgba(175,160,135,.15) 0%,
+    rgba(170,155,130,.35) 20%,
+    rgba(165,150,125,.5) 50%,
+    rgba(160,145,120,.6) 100%
+  );position:relative}
+/* 石板缝隙 */
+.slab{width:52%;height:1.5px;background:rgba(110,100,80,.4);margin:5.5px auto;border-radius:1px}
+
+/* 灌木丛 — U形环抱
+   左右对称布置，越靠近画面底部越大（近大远小）
+   形成一个"怀抱"棋盘的弧线
+   深浅两种绿交替增加层次感 */
+.shrub{position:absolute;border-radius:50% 50% 46% 46%}
+.shrub-light{background:radial-gradient(ellipse at 38% 33%,#6cc050,#4eaa3a,#38922c)}
+.shrub-dark{background:radial-gradient(ellipse at 38% 33%,#52a43e,#3c9030,#2a7a22)}
+.shrub-shadow{position:absolute;border-radius:50%;background:rgba(0,0,0,.08);filter:blur(3px)}
+
+/* 花丛 — 色彩点缀
+   用棋子的同色系做花朵颜色 → 暗示"这些元素来自这个花园"
+   但饱和度降低、面积极小，不抢棋盘主角 */
+.flower-cluster{position:absolute}
+.petal{position:absolute;width:5px;height:5px;border-radius:50%;opacity:.65}
+
+/* =============================================
+   第六层：前景装饰（画面最前）
+   棋盘边框上方的光泽/反射
+   营造"棋盘是一件水晶宝物"的感觉
+   ============================================= */
+
+/* 微粒/光斑 — 魔法氛围 */
+.sparkle{position:absolute;border-radius:50%;background:#fff;animation:twinkle 2s ease-in-out infinite;z-index:55;pointer-events:none}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.6;transform:scale(1)}}
+
+/* =============================================
+   棋盘
+   ============================================= */
+.board-container{position:absolute;top:6%;left:5%;right:5%;z-index:10}
+.board-frame{
+  background:linear-gradient(160deg,#8ac8bc,#6eb4a6,#5aa296,#4c928a);
+  border-radius:14px;padding:5px;
+  box-shadow:
+    0 6px 30px rgba(0,0,0,.5),
+    0 2px 0 rgba(255,255,255,.12) inset,
+    0 -2px 0 rgba(0,0,0,.2) inset;
+  position:relative}
+.board-frame::before{content:'';position:absolute;top:0;left:0;right:0;height:40%;
+  background:linear-gradient(180deg,rgba(255,255,255,.1),transparent);
+  border-radius:14px 14px 0 0;pointer-events:none}
+.board-grid{width:100%;background:linear-gradient(180deg,#d0c6b8,#c8bcae);
+  border-radius:10px;display:grid;grid-template-columns:repeat(9,1fr);
+  gap:1.5px;padding:3px;box-shadow:inset 0 2px 6px rgba(0,0,0,.1)}
+.gc{display:flex;align-items:center;justify-content:center;border-radius:4px;
+  background:rgba(186,176,162,.38);position:relative;overflow:visible;aspect-ratio:1}
+.gc svg{width:90%;height:90%;transition:transform .12s;filter:drop-shadow(1px 2px 2px rgba(0,0,0,.28))}
+.gc:hover svg{transform:scale(1.12)}
+.gc.obs{background:rgba(155,136,112,.28)}
+.obs-block{width:86%;height:86%;border-radius:18%;
+  background:linear-gradient(145deg,#aa9470,#92805e,#7c6c50);
+  position:relative;overflow:hidden;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.1),inset 0 -2px 0 rgba(0,0,0,.14),1px 2px 3px rgba(0,0,0,.18)}
+.obs-block::before{content:'';position:absolute;top:0;left:0;width:44%;height:44%;
+  background:rgba(255,255,255,.07);border-radius:18% 0 40% 0}
+.obs-stamp{position:absolute;inset:24%;opacity:.16}
+
+.level-bar{position:absolute;bottom:1.5%;left:4%;right:4%;display:flex;align-items:center;
+  justify-content:space-between;padding:0 10px;z-index:20}
+.level-badge{background:rgba(0,0,0,.3);color:#fff;font-size:11px;padding:4px 14px;
+  border-radius:20px;font-weight:700;backdrop-filter:blur(4px)}
+.moves{color:rgba(255,255,255,.65);font-size:12px;font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="scene">
+
+<!-- ==================== 天空 ==================== -->
+<div class="sky"></div>
+
+<!-- 高层卷云：稀薄拉长，暗示高空气流 -->
+<div class="clouds">
+  <div class="cloud cloud-high" style="width:180px;height:20px;top:5%;left:-5%"></div>
+  <div class="cloud cloud-high" style="width:140px;height:16px;top:10%;left:50%"></div>
+  <div class="cloud cloud-high" style="width:100px;height:14px;top:3%;left:30%"></div>
+  <!-- 低层积云：厚实，有体积 -->
+  <div class="cloud cloud-low" style="width:100px;height:44px;top:14%;left:0%"></div>
+  <div class="cloud cloud-low" style="width:70px;height:30px;top:12%;left:16%"></div>
+  <div class="cloud cloud-low" style="width:80px;height:36px;top:18%;right:2%"></div>
+  <div class="cloud cloud-low" style="width:55px;height:26px;top:16%;right:18%"></div>
+  <div class="cloud cloud-low" style="width:90px;height:32px;top:22%;left:35%"></div>
+</div>
+<!-- 地平线薄雾 -->
+<div class="haze"></div>
+
+<!-- ==================== 远景海面 ==================== -->
+<div class="sea-far"></div>
+<div class="sea-glint"></div>
+
+<!-- ==================== 中景海岸悬崖 ==================== -->
+<div class="cliff-far-left"></div>
+<div class="cliff-far-right"></div>
+
+<!-- ==================== 中近景山坡 ==================== -->
+<!-- 远处树丛剪影 -->
+<div class="trees-mid">
+  <div class="tree-silhouette" style="width:28px;height:24px;bottom:20%;left:4%"></div>
+  <div class="tree-silhouette" style="width:22px;height:20px;bottom:25%;left:12%"></div>
+  <div class="tree-silhouette" style="width:32px;height:26px;bottom:15%;left:22%"></div>
+  <div class="tree-silhouette" style="width:18px;height:18px;bottom:30%;left:34%"></div>
+  <div class="tree-silhouette" style="width:26px;height:22px;bottom:22%;right:8%"></div>
+  <div class="tree-silhouette" style="width:20px;height:18px;bottom:28%;right:20%"></div>
+  <div class="tree-silhouette" style="width:30px;height:24px;bottom:18%;right:30%"></div>
+</div>
+<div class="hillside"></div>
+
+<!-- ==================== 近景花园 ==================== -->
+<div class="garden">
+  <div class="lawn"><div class="lawn-edge"></div></div>
+  <div class="stone-wall"></div>
+
+  <!-- 石板路 -->
+  <div class="stone-path">
+    <div class="stone-path-fill">
+      <div style="padding-top:12%">
+        <div class="slab" style="width:38%"></div>
+        <div class="slab" style="width:42%"></div>
+        <div class="slab" style="width:46%"></div>
+        <div class="slab" style="width:50%"></div>
+        <div class="slab" style="width:54%"></div>
+        <div class="slab" style="width:58%"></div>
+        <div class="slab" style="width:62%"></div>
+        <div class="slab" style="width:66%"></div>
+        <div class="slab" style="width:70%"></div>
+        <div class="slab" style="width:74%"></div>
+        <div class="slab" style="width:78%"></div>
+        <div class="slab" style="width:80%"></div>
+        <div class="slab" style="width:82%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 灌木：左侧，由远(小)到近(大) -->
+  <div class="shrub-shadow" style="width:62px;height:16px;bottom:62%;left:5%;"></div>
+  <div class="shrub shrub-dark" style="width:56px;height:40px;bottom:62%;left:3%"></div>
+  <div class="shrub shrub-light" style="width:44px;height:34px;bottom:66%;left:15%"></div>
+
+  <div class="shrub-shadow" style="width:70px;height:16px;bottom:50%;left:3%"></div>
+  <div class="shrub shrub-light" style="width:64px;height:44px;bottom:50%;left:1%"></div>
+  <div class="shrub shrub-dark" style="width:48px;height:36px;bottom:54%;left:16%"></div>
+
+  <div class="shrub-shadow" style="width:80px;height:18px;bottom:36%;left:2%"></div>
+  <div class="shrub shrub-dark" style="width:76px;height:34px;bottom:36%;left:0%"></div>
+  <div class="shrub shrub-light" style="width:56px;height:30px;bottom:40%;left:16%"></div>
+
+  <div class="shrub-shadow" style="width:88px;height:18px;bottom:22%;left:0%"></div>
+  <div class="shrub shrub-light" style="width:84px;height:32px;bottom:22%;left:-2%"></div>
+
+  <!-- 灌木：右侧 -->
+  <div class="shrub-shadow" style="width:58px;height:16px;bottom:64%;right:4%"></div>
+  <div class="shrub shrub-light" style="width:52px;height:38px;bottom:64%;right:2%"></div>
+  <div class="shrub shrub-dark" style="width:40px;height:32px;bottom:68%;right:15%"></div>
+
+  <div class="shrub-shadow" style="width:66px;height:16px;bottom:52%;right:2%"></div>
+  <div class="shrub shrub-dark" style="width:60px;height:42px;bottom:52%;right:0%"></div>
+  <div class="shrub shrub-light" style="width:46px;height:34px;bottom:56%;right:15%"></div>
+
+  <div class="shrub-shadow" style="width:78px;height:18px;bottom:38%;right:1%"></div>
+  <div class="shrub shrub-light" style="width:72px;height:32px;bottom:38%;right:-1%"></div>
+  <div class="shrub shrub-dark" style="width:52px;height:28px;bottom:42%;right:16%"></div>
+
+  <div class="shrub-shadow" style="width:86px;height:18px;bottom:24%;right:-1%"></div>
+  <div class="shrub shrub-dark" style="width:82px;height:30px;bottom:24%;right:-2%"></div>
+
+  <!-- 花丛：用游戏元素的同色系，暗示世界观统一 -->
+  <!-- 珊瑚粉花 -->
+  <div class="flower-cluster" style="bottom:60%;left:20%">
+    <div class="petal" style="background:#FF7085;top:0;left:0"></div>
+    <div class="petal" style="background:#FF8898;top:-4px;left:5px"></div>
+    <div class="petal" style="background:#FF7085;top:2px;left:8px"></div>
+  </div>
+  <!-- 琥珀金花 -->
+  <div class="flower-cluster" style="bottom:48%;left:14%">
+    <div class="petal" style="background:#FBBF24;top:0;left:0"></div>
+    <div class="petal" style="background:#FDD24A;top:-3px;left:6px"></div>
+  </div>
+  <!-- 薰衣紫花 -->
+  <div class="flower-cluster" style="bottom:55%;right:18%">
+    <div class="petal" style="background:#A78BFA;top:0;left:0"></div>
+    <div class="petal" style="background:#BCA4F8;top:-4px;left:4px"></div>
+    <div class="petal" style="background:#A78BFA;top:1px;left:8px"></div>
+  </div>
+  <!-- 天空蓝花 -->
+  <div class="flower-cluster" style="bottom:44%;right:13%">
+    <div class="petal" style="background:#38BDF8;top:0;left:0"></div>
+    <div class="petal" style="background:#60CCFA;top:-3px;left:5px"></div>
+  </div>
+  <!-- 碧绿花 -->
+  <div class="flower-cluster" style="bottom:34%;left:20%">
+    <div class="petal" style="background:#2DD4BF;top:0;left:0"></div>
+    <div class="petal" style="background:#55E0CC;top:-3px;left:6px"></div>
+  </div>
+  <div class="flower-cluster" style="bottom:40%;right:20%">
+    <div class="petal" style="background:#FF7085;top:0;left:0"></div>
+    <div class="petal" style="background:#FBBF24;top:-4px;left:5px"></div>
+  </div>
+</div>
+
+<!-- ==================== 氛围光 ==================== -->
+<div class="atmosphere"></div>
+
+<!-- 魔法微粒 -->
+<div class="sparkle" style="width:3px;height:3px;top:20%;left:15%;animation-delay:0s"></div>
+<div class="sparkle" style="width:2px;height:2px;top:35%;right:12%;animation-delay:.6s"></div>
+<div class="sparkle" style="width:3px;height:3px;top:50%;left:8%;animation-delay:1.2s"></div>
+<div class="sparkle" style="width:2px;height:2px;top:28%;right:25%;animation-delay:.3s"></div>
+<div class="sparkle" style="width:2px;height:2px;top:60%;left:20%;animation-delay:.9s"></div>
+<div class="sparkle" style="width:3px;height:3px;top:45%;right:8%;animation-delay:1.5s"></div>
+
+<!-- ==================== 棋盘 ==================== -->
+<div class="board-container">
+  <div class="board-frame">
+    <div class="board-grid" id="board"></div>
+  </div>
+</div>
+
+<div class="level-bar">
+  <div class="moves">✦ 36</div>
+  <div class="level-badge">Level 2 ›</div>
+</div>
+
+</div>
+
+<script>
+const P = {
+  starfish: `<svg viewBox="0 0 100 100"><defs><radialGradient id="sg" cx=".38" cy=".32"><stop offset="0%" stop-color="#FFB8C4"/><stop offset="45%" stop-color="#FF7085"/><stop offset="100%" stop-color="#CC4458"/></radialGradient></defs><path d="M50 8C53 18 56 26 64 26C64 26 78 16 82 18C80 24 72 34 70 38C76 42 88 44 90 48C86 52 74 52 68 54C70 60 78 74 76 78C72 76 60 68 56 64C52 70 52 82 50 86C48 82 48 70 44 64C40 68 28 76 24 78C22 74 30 60 32 54C26 52 14 52 10 48C12 44 24 42 30 38C28 34 20 24 18 18C22 16 36 26 36 26C44 26 47 18 50 8Z" fill="url(#sg)"/><path d="M50 8C47 18 44 26 36 26C36 26 22 16 18 18C20 24 28 34 30 38C24 42 12 44 10 48C14 52 26 52 32 54C30 60 22 74 24 78C28 76 40 68 44 64C48 70 48 82 50 86" fill="rgba(0,0,0,.1)"/><ellipse cx="38" cy="32" rx="8" ry="10" fill="rgba(255,255,255,.25)" transform="rotate(-15 38 32)"/><ellipse cx="34" cy="24" rx="4" ry="5" fill="rgba(255,255,255,.15)"/></svg>`,
+  turtle: `<svg viewBox="0 0 100 100"><defs><radialGradient id="tg" cx=".38" cy=".32"><stop offset="0%" stop-color="#70ECD8"/><stop offset="45%" stop-color="#2DD4BF"/><stop offset="100%" stop-color="#18946E"/></radialGradient></defs><ellipse cx="50" cy="14" rx="10" ry="11" fill="#24BA9E"/><ellipse cx="16" cy="42" rx="11" ry="8" fill="#24BA9E" transform="rotate(-20 16 42)"/><ellipse cx="84" cy="42" rx="11" ry="8" fill="#24BA9E" transform="rotate(20 84 42)"/><ellipse cx="24" cy="78" rx="9" ry="7" fill="#24BA9E" transform="rotate(30 24 78)"/><ellipse cx="76" cy="78" rx="9" ry="7" fill="#24BA9E" transform="rotate(-30 76 78)"/><ellipse cx="50" cy="52" rx="32" ry="30" fill="url(#tg)"/><ellipse cx="50" cy="52" rx="32" ry="30" fill="rgba(0,0,0,.08)" style="clip-path:inset(0 0 0 52%)"/><ellipse cx="50" cy="50" rx="20" ry="18" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.8"/><circle cx="42" cy="42" r="6" fill="rgba(0,0,0,.07)"/><circle cx="58" cy="40" r="6" fill="rgba(0,0,0,.07)"/><circle cx="50" cy="56" r="7" fill="rgba(0,0,0,.07)"/><circle cx="38" cy="58" r="5" fill="rgba(0,0,0,.06)"/><circle cx="62" cy="58" r="5" fill="rgba(0,0,0,.06)"/><ellipse cx="40" cy="36" rx="7" ry="9" fill="rgba(255,255,255,.2)" transform="rotate(-12 40 36)"/><circle cx="46" cy="13" r="3" fill="#0C5040"/><circle cx="45.5" cy="12.5" r="1.2" fill="rgba(255,255,255,.5)"/><circle cx="54" cy="13" r="3" fill="#0C5040"/><circle cx="53.5" cy="12.5" r="1.2" fill="rgba(255,255,255,.5)"/></svg>`,
+  shell: `<svg viewBox="0 0 100 100"><defs><radialGradient id="shg" cx=".36" cy=".28"><stop offset="0%" stop-color="#FFE070"/><stop offset="40%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#B88410"/></radialGradient></defs><path d="M50 10C34 10 14 24 10 48C8 62 14 76 26 84C34 90 42 92 50 92C58 92 66 90 74 84C86 76 92 62 90 48C86 24 66 10 50 10Z" fill="url(#shg)"/><path d="M50 10C34 10 14 24 10 48C8 62 14 76 26 84C34 90 42 92 50 92C50 52 50 10 50 10Z" fill="rgba(0,0,0,.1)"/><path d="M50 12Q42 50 38 88" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.8"/><path d="M50 12Q34 40 22 72" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.5"/><path d="M50 12Q58 50 62 88" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.8"/><path d="M50 12Q66 40 78 72" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.5"/><path d="M50 12Q72 30 88 50" fill="none" stroke="rgba(0,0,0,.06)" stroke-width="1.2"/><path d="M50 12Q28 30 12 50" fill="none" stroke="rgba(0,0,0,.06)" stroke-width="1.2"/><ellipse cx="38" cy="30" rx="8" ry="12" fill="rgba(255,255,255,.2)" transform="rotate(-8 38 30)"/><circle cx="36" cy="20" r="4" fill="rgba(255,255,255,.12)"/></svg>`,
+  jellyfish: `<svg viewBox="0 0 100 100"><defs><radialGradient id="jg" cx=".38" cy=".30"><stop offset="0%" stop-color="#CCBAFF"/><stop offset="40%" stop-color="#A78BFA"/><stop offset="100%" stop-color="#6C4CC0"/></radialGradient></defs><path d="M14 52Q10 28 20 16Q30 6 50 4Q70 6 80 16Q90 28 86 52Q72 58 50 54Q28 58 14 52Z" fill="url(#jg)"/><path d="M14 52Q10 28 20 16Q30 6 50 4Q50 30 14 52Z" fill="rgba(0,0,0,.09)"/><ellipse cx="36" cy="22" rx="9" ry="12" fill="rgba(255,255,255,.2)" transform="rotate(-10 36 22)"/><path d="M26 54Q20 68 24 78Q28 86 24 94" fill="none" stroke="#B8A0F4" stroke-width="4.5" stroke-linecap="round" opacity=".8"/><path d="M40 56Q36 72 40 82Q44 90 40 96" fill="none" stroke="#B8A0F4" stroke-width="4" stroke-linecap="round" opacity=".7"/><path d="M56 55Q60 72 56 82Q52 90 56 96" fill="none" stroke="#B8A0F4" stroke-width="4" stroke-linecap="round" opacity=".75"/><path d="M72 53Q78 66 74 76Q70 84 74 92" fill="none" stroke="#B8A0F4" stroke-width="4.5" stroke-linecap="round" opacity=".8"/><circle cx="40" cy="32" r="5" fill="rgba(255,255,255,.6)"/><circle cx="41" cy="33" r="2.5" fill="#4C2CA0"/><circle cx="60" cy="32" r="5" fill="rgba(255,255,255,.6)"/><circle cx="61" cy="33" r="2.5" fill="#4C2CA0"/></svg>`,
+  drop: `<svg viewBox="0 0 100 100"><defs><radialGradient id="dg" cx=".38" cy=".35"><stop offset="0%" stop-color="#80DAFF"/><stop offset="40%" stop-color="#38BDF8"/><stop offset="100%" stop-color="#1480C0"/></radialGradient></defs><path d="M50 6C46 16 36 30 26 46Q14 64 16 76Q18 86 28 92Q36 96 50 96Q64 96 72 92Q82 86 84 76Q86 64 74 46C64 30 54 16 50 6Z" fill="url(#dg)"/><path d="M50 6C46 16 36 30 26 46Q14 64 16 76Q18 86 28 92Q36 96 50 96Q50 50 50 6Z" fill="rgba(0,0,0,.09)"/><ellipse cx="38" cy="48" rx="7" ry="14" fill="rgba(255,255,255,.22)" transform="rotate(-10 38 48)"/><circle cx="36" cy="36" r="5" fill="rgba(255,255,255,.15)"/></svg>`
+};
+
+const keys = ['starfish','turtle','shell','jellyfish','drop'];
+const board = document.getElementById('board');
+const R=9, C=9;
+for(let r=0;r<R;r++){
+  for(let c=0;c<C;c++){
+    const cell = document.createElement('div');
+    cell.className = 'gc';
+    const isObs = (r>=5 && c<6)||(r>=4 && c<4)||(r>=3 && c<2)||(r===3 && c===2);
+    if(isObs){
+      cell.classList.add('obs');
+      const blk = document.createElement('div');
+      blk.className = 'obs-block';
+      blk.innerHTML = `<div class="obs-stamp"><svg viewBox="0 0 100 100"><path d="M50 18Q32 22 24 44Q22 62 32 74Q42 84 50 84Q58 84 68 74Q78 62 76 44Q68 22 50 18Z" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="3"/><line x1="50" y1="18" x2="42" y2="76" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/><line x1="50" y1="18" x2="58" y2="76" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/></svg></div>`;
+      cell.appendChild(blk);
+    } else {
+      cell.innerHTML = P[keys[Math.floor(Math.random()*keys.length)]];
+    }
+    board.appendChild(cell);
+  }
+}
+</script>
+</body>
+</html>
