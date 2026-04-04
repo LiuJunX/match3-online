@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>水晶海洋 · 完整棋盘</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',sans-serif;background:#0a0c10;color:#ddd;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+
+.scene{width:100%;max-width:480px;position:relative;overflow:hidden;aspect-ratio:9/16}
+
+/* ========================================
+   BACKGROUND — 四层由远到近
+   参考图结构：天空 → 远景建筑 → 棋盘 → 近景花园+路
+   我们的结构：天空 → 远景海面 → 棋盘 → 近景草坪+路
+   ======================================== */
+
+/* Layer 1: 天空 — 最远层，蓝色渐变 */
+.bg-sky{position:absolute;inset:0;background:linear-gradient(180deg,
+  #1466a0 0%,
+  #3a98c8 20%,
+  #68bce0 38%,
+  #98d4ec 50%,
+  #c0e4f0 58%,
+  #d8ece8 64%,
+  #b8d8b0 72%,
+  #78b868 80%,
+  #5a9850 100%
+)}
+
+/* Layer 1b: 云 — 给天空增加层次 */
+.clouds{position:absolute;top:0;left:0;right:0;height:38%;overflow:hidden}
+.cloud{position:absolute;background:rgba(255,255,255,.55);border-radius:50%;filter:blur(10px)}
+
+/* Layer 2: 远景海面 — 棋盘后方可见的海面 */
+.bg-sea{position:absolute;top:48%;left:0;right:0;height:12%;background:linear-gradient(180deg,
+  rgba(60,150,190,.3) 0%,
+  rgba(40,120,170,.2) 60%,
+  transparent 100%
+)}
+.sea-line{position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(255,255,255,.12)}
+
+/* Layer 3: 近景草坪 — 棋盘下方的绿地 */
+.bg-ground{position:absolute;bottom:0;left:0;right:0;height:30%}
+/* 草坪主体 */
+.grass{position:absolute;inset:0;background:linear-gradient(180deg,
+  #68ac50 0%,
+  #5a9a44 30%,
+  #4a8838 60%,
+  #3c7830 100%
+)}
+/* 草坪顶部的泥土/石头边缘（参考图中花园和棋盘的交界处） */
+.grass-edge{position:absolute;top:-2px;left:0;right:0;height:8px;background:linear-gradient(180deg,#8aaa70,#68ac50);border-radius:0 0 50% 50%/0 0 100% 100%}
+
+/* Layer 3b: 石板路 — 从画面底部延伸向棋盘，形成纵向引导线 */
+.stone-path{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:28%;height:85%;
+  background:linear-gradient(180deg,
+    rgba(170,155,130,.0) 0%,
+    rgba(170,155,130,.3) 15%,
+    rgba(160,145,120,.5) 50%,
+    rgba(150,135,110,.6) 100%
+  );
+  clip-path:polygon(30% 0%,70% 0%,82% 100%,18% 100%)
+}
+.stone-line{width:50%;height:1.5px;background:rgba(120,108,88,.35);margin:5px auto;border-radius:1px}
+
+/* Layer 3c: 灌木 — 两侧绿植装饰，形成U形环抱 */
+.bush{position:absolute;border-radius:50% 50% 45% 45%;background:radial-gradient(ellipse at 40% 35%,#6ab855,#4a9840,#388430)}
+.bush-dark{position:absolute;border-radius:50% 50% 45% 45%;background:radial-gradient(ellipse at 40% 35%,#55a040,#3a8830,#2a7024)}
+
+/* Layer 3d: 小花装饰点缀 */
+.flower{position:absolute;width:6px;height:6px;border-radius:50%}
+
+/* ========================================
+   棋盘
+   ======================================== */
+.board-container{position:absolute;top:15%;left:5%;right:5%}
+
+/* 金属质感外框 — 对应原版金色框，这里用青铜绿 */
+.board-frame{
+  background:linear-gradient(160deg,#8ac4b8,#6eb0a4,#5a9e92,#4e8e84);
+  border-radius:14px;padding:5px;
+  box-shadow:
+    0 4px 24px rgba(0,0,0,.45),
+    0 1px 0 rgba(255,255,255,.15) inset,
+    0 -1px 0 rgba(0,0,0,.25) inset;
+  position:relative
+}
+.board-frame::before{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(180deg,rgba(255,255,255,.1),transparent);border-radius:14px 14px 0 0;pointer-events:none}
+
+/* 网格底色 — 暖灰色，与冷色棋子形成冷暖对比 */
+.board-grid{
+  width:100%;
+  background:linear-gradient(180deg,#d0c4b6,#c8bcae);
+  border-radius:10px;
+  display:grid;
+  grid-template-columns:repeat(9,1fr);
+  gap:1.5px;padding:3px;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.1)
+}
+
+/* 单个格子 — 正方形，微微区分底色 */
+.gc{
+  display:flex;align-items:center;justify-content:center;
+  border-radius:4px;
+  background:rgba(186,176,162,.4);
+  position:relative;overflow:visible;
+  aspect-ratio:1
+}
+.gc svg{width:90%;height:90%;transition:transform .12s ease;filter:drop-shadow(1px 2px 2px rgba(0,0,0,.28))}
+.gc:hover svg{transform:scale(1.12)}
+
+/* 障碍方块 — 砂岩石块 */
+.gc.obs{background:rgba(155,136,112,.3)}
+.obs-block{
+  width:86%;height:86%;border-radius:18%;
+  background:linear-gradient(145deg,#aa9470,#92805e,#7c6c50);
+  position:relative;overflow:hidden;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.1),inset 0 -2px 0 rgba(0,0,0,.14),1px 2px 3px rgba(0,0,0,.18)
+}
+.obs-block::before{content:'';position:absolute;top:0;left:0;width:44%;height:44%;background:rgba(255,255,255,.07);border-radius:18% 0 40% 0}
+.obs-stamp{position:absolute;inset:24%;opacity:.16}
+
+/* 底部信息栏 */
+.level-bar{position:absolute;bottom:1.5%;left:4%;right:4%;display:flex;align-items:center;justify-content:space-between;padding:0 10px}
+.level-badge{background:rgba(0,0,0,.3);color:#fff;font-size:11px;padding:4px 14px;border-radius:20px;font-weight:700;backdrop-filter:blur(4px)}
+.moves{color:rgba(255,255,255,.65);font-size:12px;font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="scene">
+
+  <!-- ===== Layer 1: 天空+云 ===== -->
+  <div class="bg-sky"></div>
+  <div class="clouds">
+    <div class="cloud" style="width:110px;height:40px;top:10%;left:2%"></div>
+    <div class="cloud" style="width:80px;height:32px;top:4%;left:55%"></div>
+    <div class="cloud" style="width:130px;height:38px;top:18%;left:65%"></div>
+    <div class="cloud" style="width:60px;height:26px;top:6%;left:32%"></div>
+    <div class="cloud" style="width:90px;height:30px;top:24%;left:10%"></div>
+  </div>
+
+  <!-- ===== Layer 2: 远景海面 ===== -->
+  <div class="bg-sea"><div class="sea-line"></div></div>
+
+  <!-- ===== Layer 3: 近景草坪+石板路+灌木 ===== -->
+  <div class="bg-ground">
+    <div class="grass"><div class="grass-edge"></div></div>
+
+    <!-- 石板路：从底部向上指向棋盘，形成纵向视觉引导 -->
+    <div class="stone-path">
+      <div style="padding-top:20%">
+        <div class="stone-line" style="width:40%"></div>
+        <div class="stone-line" style="width:48%"></div>
+        <div class="stone-line" style="width:54%"></div>
+        <div class="stone-line" style="width:60%"></div>
+        <div class="stone-line" style="width:66%"></div>
+        <div class="stone-line" style="width:72%"></div>
+        <div class="stone-line" style="width:78%"></div>
+        <div class="stone-line" style="width:82%"></div>
+        <div class="stone-line" style="width:86%"></div>
+        <div class="stone-line" style="width:90%"></div>
+      </div>
+    </div>
+
+    <!-- 灌木丛：左右两侧形成U形环抱，引导视线到中央棋盘 -->
+    <!-- 左侧 -->
+    <div class="bush-dark" style="width:70px;height:50px;bottom:52%;left:2%"></div>
+    <div class="bush" style="width:55px;height:42px;bottom:56%;left:14%"></div>
+    <div class="bush" style="width:48px;height:36px;bottom:48%;left:6%"></div>
+    <div class="bush-dark" style="width:80px;height:32px;bottom:38%;left:5%"></div>
+    <div class="bush" style="width:60px;height:28px;bottom:34%;left:15%"></div>
+    <div class="bush" style="width:44px;height:24px;bottom:26%;left:2%"></div>
+    <!-- 右侧 -->
+    <div class="bush-dark" style="width:65px;height:48px;bottom:54%;right:3%"></div>
+    <div class="bush" style="width:50px;height:40px;bottom:58%;right:16%"></div>
+    <div class="bush" style="width:52px;height:38px;bottom:46%;right:5%"></div>
+    <div class="bush-dark" style="width:75px;height:30px;bottom:36%;right:8%"></div>
+    <div class="bush" style="width:55px;height:26px;bottom:32%;right:18%"></div>
+    <div class="bush" style="width:40px;height:22px;bottom:24%;right:4%"></div>
+
+    <!-- 小花点缀 -->
+    <div class="flower" style="background:#f08080;bottom:50%;left:26%;opacity:.6"></div>
+    <div class="flower" style="background:#f0d060;bottom:44%;left:12%;opacity:.5"></div>
+    <div class="flower" style="background:#80c0f0;bottom:42%;right:14%;opacity:.5"></div>
+    <div class="flower" style="background:#f08080;bottom:52%;right:26%;opacity:.6"></div>
+    <div class="flower" style="background:#c0a0f0;bottom:36%;left:20%;opacity:.4"></div>
+    <div class="flower" style="background:#f0d060;bottom:38%;right:22%;opacity:.4"></div>
+  </div>
+
+  <!-- ===== 棋盘 ===== -->
+  <div class="board-container">
+    <div class="board-frame">
+      <div class="board-grid" id="board"></div>
+    </div>
+  </div>
+
+  <!-- 底部信息 -->
+  <div class="level-bar">
+    <div class="moves">✦ 36</div>
+    <div class="level-badge">Level 2 ›</div>
+  </div>
+</div>
+
+<script>
+// ======== 棋子 SVG ========
+// 每个棋子的外轮廓就是造型本身（不是方块里放图案）
+// 统一左上高光 + 右下暗面 + 径向渐变体积感
+
+const P = {
+  starfish: `<svg viewBox="0 0 100 100">
+    <defs><radialGradient id="sg" cx=".38" cy=".32"><stop offset="0%" stop-color="#FFB8C4"/><stop offset="45%" stop-color="#FF7085"/><stop offset="100%" stop-color="#CC4458"/></radialGradient></defs>
+    <path d="M50 8C53 18 56 26 64 26C64 26 78 16 82 18C80 24 72 34 70 38C76 42 88 44 90 48C86 52 74 52 68 54C70 60 78 74 76 78C72 76 60 68 56 64C52 70 52 82 50 86C48 82 48 70 44 64C40 68 28 76 24 78C22 74 30 60 32 54C26 52 14 52 10 48C12 44 24 42 30 38C28 34 20 24 18 18C22 16 36 26 36 26C44 26 47 18 50 8Z" fill="url(#sg)"/>
+    <path d="M50 8C47 18 44 26 36 26C36 26 22 16 18 18C20 24 28 34 30 38C24 42 12 44 10 48C14 52 26 52 32 54C30 60 22 74 24 78C28 76 40 68 44 64C48 70 48 82 50 86" fill="rgba(0,0,0,.1)"/>
+    <ellipse cx="38" cy="32" rx="8" ry="10" fill="rgba(255,255,255,.25)" transform="rotate(-15 38 32)"/>
+    <ellipse cx="34" cy="24" rx="4" ry="5" fill="rgba(255,255,255,.15)"/>
+  </svg>`,
+
+  turtle: `<svg viewBox="0 0 100 100">
+    <defs><radialGradient id="tg" cx=".38" cy=".32"><stop offset="0%" stop-color="#70ECD8"/><stop offset="45%" stop-color="#2DD4BF"/><stop offset="100%" stop-color="#18946E"/></radialGradient></defs>
+    <ellipse cx="50" cy="14" rx="10" ry="11" fill="#24BA9E"/>
+    <ellipse cx="16" cy="42" rx="11" ry="8" fill="#24BA9E" transform="rotate(-20 16 42)"/>
+    <ellipse cx="84" cy="42" rx="11" ry="8" fill="#24BA9E" transform="rotate(20 84 42)"/>
+    <ellipse cx="24" cy="78" rx="9" ry="7" fill="#24BA9E" transform="rotate(30 24 78)"/>
+    <ellipse cx="76" cy="78" rx="9" ry="7" fill="#24BA9E" transform="rotate(-30 76 78)"/>
+    <ellipse cx="50" cy="52" rx="32" ry="30" fill="url(#tg)"/>
+    <ellipse cx="50" cy="52" rx="32" ry="30" fill="rgba(0,0,0,.08)" style="clip-path:inset(0 0 0 52%)"/>
+    <ellipse cx="50" cy="50" rx="20" ry="18" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.8"/>
+    <circle cx="42" cy="42" r="6" fill="rgba(0,0,0,.07)"/>
+    <circle cx="58" cy="40" r="6" fill="rgba(0,0,0,.07)"/>
+    <circle cx="50" cy="56" r="7" fill="rgba(0,0,0,.07)"/>
+    <circle cx="38" cy="58" r="5" fill="rgba(0,0,0,.06)"/>
+    <circle cx="62" cy="58" r="5" fill="rgba(0,0,0,.06)"/>
+    <ellipse cx="40" cy="36" rx="7" ry="9" fill="rgba(255,255,255,.2)" transform="rotate(-12 40 36)"/>
+    <circle cx="46" cy="13" r="3" fill="#0C5040"/><circle cx="45.5" cy="12.5" r="1.2" fill="rgba(255,255,255,.5)"/>
+    <circle cx="54" cy="13" r="3" fill="#0C5040"/><circle cx="53.5" cy="12.5" r="1.2" fill="rgba(255,255,255,.5)"/>
+  </svg>`,
+
+  shell: `<svg viewBox="0 0 100 100">
+    <defs><radialGradient id="shg" cx=".36" cy=".28"><stop offset="0%" stop-color="#FFE070"/><stop offset="40%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#B88410"/></radialGradient></defs>
+    <path d="M50 10C34 10 14 24 10 48C8 62 14 76 26 84C34 90 42 92 50 92C58 92 66 90 74 84C86 76 92 62 90 48C86 24 66 10 50 10Z" fill="url(#shg)"/>
+    <path d="M50 10C34 10 14 24 10 48C8 62 14 76 26 84C34 90 42 92 50 92C50 52 50 10 50 10Z" fill="rgba(0,0,0,.1)"/>
+    <path d="M50 12Q42 50 38 88" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.8"/>
+    <path d="M50 12Q34 40 22 72" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.5"/>
+    <path d="M50 12Q58 50 62 88" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.8"/>
+    <path d="M50 12Q66 40 78 72" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.5"/>
+    <path d="M50 12Q72 30 88 50" fill="none" stroke="rgba(0,0,0,.06)" stroke-width="1.2"/>
+    <path d="M50 12Q28 30 12 50" fill="none" stroke="rgba(0,0,0,.06)" stroke-width="1.2"/>
+    <ellipse cx="38" cy="30" rx="8" ry="12" fill="rgba(255,255,255,.2)" transform="rotate(-8 38 30)"/>
+    <circle cx="36" cy="20" r="4" fill="rgba(255,255,255,.12)"/>
+  </svg>`,
+
+  jellyfish: `<svg viewBox="0 0 100 100">
+    <defs><radialGradient id="jg" cx=".38" cy=".30"><stop offset="0%" stop-color="#CCBAFF"/><stop offset="40%" stop-color="#A78BFA"/><stop offset="100%" stop-color="#6C4CC0"/></radialGradient></defs>
+    <path d="M14 52Q10 28 20 16Q30 6 50 4Q70 6 80 16Q90 28 86 52Q72 58 50 54Q28 58 14 52Z" fill="url(#jg)"/>
+    <path d="M14 52Q10 28 20 16Q30 6 50 4Q50 30 14 52Z" fill="rgba(0,0,0,.09)"/>
+    <ellipse cx="36" cy="22" rx="9" ry="12" fill="rgba(255,255,255,.2)" transform="rotate(-10 36 22)"/>
+    <path d="M26 54Q20 68 24 78Q28 86 24 94" fill="none" stroke="#B8A0F4" stroke-width="4.5" stroke-linecap="round" opacity=".8"/>
+    <path d="M40 56Q36 72 40 82Q44 90 40 96" fill="none" stroke="#B8A0F4" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+    <path d="M56 55Q60 72 56 82Q52 90 56 96" fill="none" stroke="#B8A0F4" stroke-width="4" stroke-linecap="round" opacity=".75"/>
+    <path d="M72 53Q78 66 74 76Q70 84 74 92" fill="none" stroke="#B8A0F4" stroke-width="4.5" stroke-linecap="round" opacity=".8"/>
+    <circle cx="40" cy="32" r="5" fill="rgba(255,255,255,.6)"/><circle cx="41" cy="33" r="2.5" fill="#4C2CA0"/>
+    <circle cx="60" cy="32" r="5" fill="rgba(255,255,255,.6)"/><circle cx="61" cy="33" r="2.5" fill="#4C2CA0"/>
+  </svg>`,
+
+  drop: `<svg viewBox="0 0 100 100">
+    <defs><radialGradient id="dg" cx=".38" cy=".35"><stop offset="0%" stop-color="#80DAFF"/><stop offset="40%" stop-color="#38BDF8"/><stop offset="100%" stop-color="#1480C0"/></radialGradient></defs>
+    <path d="M50 6C46 16 36 30 26 46Q14 64 16 76Q18 86 28 92Q36 96 50 96Q64 96 72 92Q82 86 84 76Q86 64 74 46C64 30 54 16 50 6Z" fill="url(#dg)"/>
+    <path d="M50 6C46 16 36 30 26 46Q14 64 16 76Q18 86 28 92Q36 96 50 96Q50 50 50 6Z" fill="rgba(0,0,0,.09)"/>
+    <ellipse cx="38" cy="48" rx="7" ry="14" fill="rgba(255,255,255,.22)" transform="rotate(-10 38 48)"/>
+    <circle cx="36" cy="36" r="5" fill="rgba(255,255,255,.15)"/>
+  </svg>`
+};
+
+const keys = ['starfish','turtle','shell','jellyfish','drop'];
+const board = document.getElementById('board');
+const R=9, C=9; // 9行9列
+
+for(let r=0;r<R;r++){
+  for(let c=0;c<C;c++){
+    const cell = document.createElement('div');
+    cell.className = 'gc';
+    // 障碍区：不规则前线，上方彩色多，下方障碍多
+    const isObs = (r>=5 && c<6) || (r>=4 && c<4) || (r>=3 && c<2) || (r===3 && c===2);
+    if(isObs){
+      cell.classList.add('obs');
+      const blk = document.createElement('div');
+      blk.className = 'obs-block';
+      blk.innerHTML = `<div class="obs-stamp"><svg viewBox="0 0 100 100"><path d="M50 18Q32 22 24 44Q22 62 32 74Q42 84 50 84Q58 84 68 74Q78 62 76 44Q68 22 50 18Z" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="3"/><line x1="50" y1="18" x2="42" y2="76" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/><line x1="50" y1="18" x2="58" y2="76" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/></svg></div>`;
+      cell.appendChild(blk);
+    } else {
+      const k = keys[Math.floor(Math.random()*keys.length)];
+      cell.innerHTML = P[k];
+    }
+    board.appendChild(cell);
+  }
+}
+</script>
+</body>
+</html>

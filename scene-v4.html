@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>水晶海洋 · 完整场景</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',sans-serif;background:#080a0e;min-height:100vh;display:flex;justify-content:center}
+
+/*
+  核心结构：
+  .scene 是一个相对定位容器
+  - 背景层全部 position:absolute，铺满整个场景（一个连续的世界）
+  - 棋盘是 position:relative 的正常流元素，用 padding 制造四周留白
+  - 背景从留白处"透出来"，棋盘像"浮"在场景上
+  - 棋盘的 box-shadow 制造"悬浮"的纵深感
+*/
+.scene{
+  width:100%;max-width:520px;
+  position:relative;
+  overflow:hidden;
+}
+
+/* ====== 背景：一个连续的世界 ====== */
+/* 整体天地渐变 — 一笔画到底 */
+.bg{position:absolute;inset:0;
+  background:linear-gradient(180deg,
+    #0e3d6e 0%,
+    #1a5a8e 6%,
+    #3088b8 14%,
+    #58b0d4 22%,
+    #88cce0 30%,
+    #b0d8d0 38%,
+    #c8d4b8 46%,
+    #a0bc80 55%,
+    #80aa60 62%,
+    #5e9848 70%,
+    #4c8c3a 80%,
+    #3e7e30 90%,
+    #347028 100%
+  )
+}
+
+/* 云 */
+.clouds{position:absolute;top:0;left:0;right:0;height:34%;pointer-events:none;z-index:1}
+.cloud{position:absolute;background:rgba(255,255,255,.4);border-radius:50%;filter:blur(7px)}
+
+/* 地平线光带 */
+.horizon{position:absolute;top:34%;left:0;right:0;height:6%;z-index:1;
+  background:linear-gradient(180deg,transparent,rgba(220,210,180,.12),rgba(240,230,200,.08),transparent)}
+
+/* 远景山丘轮廓 */
+.far-hills{position:absolute;top:42%;left:0;right:0;height:20%;z-index:1;overflow:hidden}
+.fh{position:absolute;bottom:0;border-radius:50% 50% 0 0;opacity:.3}
+
+/* 近景草地上的灌木和装饰 */
+.garden-layer{position:absolute;bottom:0;left:0;right:0;height:30%;z-index:1;overflow:hidden}
+/* 矮墙 */
+.wall{position:absolute;top:6%;left:8%;right:8%;height:10px;
+  background:linear-gradient(180deg,#c4b49a,#a89878);border-radius:3px;
+  box-shadow:0 2px 4px rgba(0,0,0,.15)}
+.wall::before{content:'';position:absolute;top:-4px;left:-1%;right:-1%;height:5px;
+  background:linear-gradient(180deg,#d4c4aa,#bca88e);border-radius:3px}
+/* 石板路 */
+.spath{position:absolute;left:50%;transform:translateX(-50%);top:14%;bottom:0;width:20%;
+  background:linear-gradient(180deg,rgba(160,145,120,.2),rgba(150,135,110,.45));
+  clip-path:polygon(28% 0%,72% 0%,82% 100%,18% 100%)}
+.slab{width:50%;height:1.5px;background:rgba(100,90,70,.3);margin:4px auto;border-radius:1px}
+/* 灌木 */
+.sh{position:absolute;border-radius:50% 50% 46% 46%}
+.sh-l{background:radial-gradient(ellipse at 38% 33%,#6cc050,#4eaa3a,#38922c)}
+.sh-d{background:radial-gradient(ellipse at 38% 33%,#52a43e,#3c9030,#2a7a22)}
+/* 花 */
+.fl{position:absolute;width:5px;height:5px;border-radius:50%;opacity:.55}
+
+/* ====== 棋盘：浮在世界上方 ====== */
+.board-wrap{
+  position:relative;z-index:5;
+  /* 四周留白 = 背景可见区域 */
+  padding:28px 4.5% 0;
+}
+.board-frame{
+  background:linear-gradient(160deg,#8ac8bc,#6eb4a6,#5aa296,#4c928a);
+  border-radius:14px;padding:5px;
+  /* 关键：多层阴影制造"悬浮在场景上方"的空间感 */
+  box-shadow:
+    0 4px 8px rgba(0,0,0,.2),      /* 近影：锐利，贴合 */
+    0 12px 24px rgba(0,0,0,.25),    /* 中影：扩散，制造高度感 */
+    0 24px 48px rgba(0,0,0,.15),    /* 远影：柔和大范围，暗示离背景很远 */
+    inset 0 2px 0 rgba(255,255,255,.12),
+    inset 0 -2px 0 rgba(0,0,0,.2);
+  position:relative;
+}
+/* 边框顶部高光 */
+.board-frame::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.1) 0%,transparent 40%);
+  border-radius:14px;pointer-events:none}
+/* 边框底部反射光（来自草地的环境光） */
+.board-frame::after{content:'';position:absolute;bottom:0;left:10%;right:10%;height:3px;
+  background:rgba(120,180,100,.08);border-radius:0 0 14px 14px;pointer-events:none}
+
+.board-grid{width:100%;background:linear-gradient(180deg,#d0c6b8,#c8bcae);
+  border-radius:10px;display:grid;grid-template-columns:repeat(9,1fr);
+  gap:1.5px;padding:3px;box-shadow:inset 0 2px 5px rgba(0,0,0,.1)}
+.gc{display:flex;align-items:center;justify-content:center;border-radius:4px;
+  background:rgba(186,176,162,.38);aspect-ratio:1;overflow:visible}
+.gc svg{width:90%;height:90%;transition:transform .12s;filter:drop-shadow(1px 2px 2px rgba(0,0,0,.28))}
+.gc:hover svg{transform:scale(1.12)}
+.gc.obs{background:rgba(155,136,112,.28)}
+.obs-block{width:86%;height:86%;border-radius:18%;
+  background:linear-gradient(145deg,#aa9470,#92805e,#7c6c50);position:relative;overflow:hidden;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.1),inset 0 -2px 0 rgba(0,0,0,.14)}
+.obs-block::before{content:'';position:absolute;top:0;left:0;width:44%;height:44%;
+  background:rgba(255,255,255,.07);border-radius:18% 0 40% 0}
+.obs-stamp{position:absolute;inset:24%;opacity:.15}
+
+/* 底部留白 + 信息栏 */
+.bottom-space{position:relative;z-index:5;padding:0 4.5% 6px}
+.bbar{display:flex;align-items:center;justify-content:space-between;padding:6px 10px}
+.badge{background:rgba(0,0,0,.25);color:#fff;font-size:11px;padding:3px 12px;
+  border-radius:20px;font-weight:700;backdrop-filter:blur(4px)}
+.mcnt{color:rgba(255,255,255,.55);font-size:12px;font-weight:700}
+
+/* 氛围微粒 */
+.sparkle{position:absolute;border-radius:50%;background:#fff;pointer-events:none;z-index:6;
+  animation:tw 2.5s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:.45;transform:scale(1)}}
+</style>
+</head>
+<body>
+<div class="scene">
+
+  <!-- ====== 背景（一个连续世界） ====== -->
+  <div class="bg"></div>
+
+  <div class="clouds">
+    <div class="cloud" style="width:90px;height:26px;top:3%;left:0%"></div>
+    <div class="cloud" style="width:60px;height:20px;top:1%;left:35%"></div>
+    <div class="cloud" style="width:70px;height:22px;top:5%;right:2%"></div>
+    <div class="cloud" style="width:50px;height:18px;top:8%;right:25%"></div>
+    <div class="cloud" style="width:80px;height:20px;top:10%;left:15%"></div>
+  </div>
+
+  <div class="horizon"></div>
+
+  <div class="far-hills">
+    <div class="fh" style="width:35%;height:60%;left:-4%;background:#7a9a6a"></div>
+    <div class="fh" style="width:25%;height:45%;left:18%;background:#8aaa78"></div>
+    <div class="fh" style="width:30%;height:55%;right:-2%;background:#7a9868"></div>
+    <div class="fh" style="width:20%;height:40%;right:22%;background:#88a874"></div>
+    <div class="fh" style="width:45%;height:30%;left:8%;background:#6e9858;opacity:.45"></div>
+    <div class="fh" style="width:40%;height:35%;right:5%;background:#6e9656;opacity:.45"></div>
+  </div>
+
+  <div class="garden-layer">
+    <div class="wall"></div>
+    <div class="spath">
+      <div style="padding-top:18%">
+        <div class="slab" style="width:34%"></div><div class="slab" style="width:40%"></div>
+        <div class="slab" style="width:46%"></div><div class="slab" style="width:52%"></div>
+        <div class="slab" style="width:58%"></div><div class="slab" style="width:62%"></div>
+        <div class="slab" style="width:66%"></div><div class="slab" style="width:70%"></div>
+      </div>
+    </div>
+    <!-- 左灌木 -->
+    <div class="sh sh-d" style="width:48px;height:34px;bottom:52%;left:2%"></div>
+    <div class="sh sh-l" style="width:36px;height:26px;bottom:56%;left:13%"></div>
+    <div class="sh sh-l" style="width:54px;height:36px;bottom:38%;left:0%"></div>
+    <div class="sh sh-d" style="width:40px;height:28px;bottom:42%;left:12%"></div>
+    <div class="sh sh-d" style="width:60px;height:28px;bottom:22%;left:-1%"></div>
+    <div class="sh sh-l" style="width:44px;height:24px;bottom:26%;left:13%"></div>
+    <div class="sh sh-l" style="width:66px;height:26px;bottom:8%;left:-2%"></div>
+    <div class="sh sh-d" style="width:30px;height:20px;bottom:14%;left:14%"></div>
+    <!-- 右灌木 -->
+    <div class="sh sh-l" style="width:44px;height:32px;bottom:54%;right:3%"></div>
+    <div class="sh sh-d" style="width:34px;height:24px;bottom:58%;right:14%"></div>
+    <div class="sh sh-d" style="width:50px;height:34px;bottom:40%;right:1%"></div>
+    <div class="sh sh-l" style="width:38px;height:26px;bottom:44%;right:13%"></div>
+    <div class="sh sh-l" style="width:58px;height:26px;bottom:24%;right:0%"></div>
+    <div class="sh sh-d" style="width:42px;height:22px;bottom:28%;right:14%"></div>
+    <div class="sh sh-d" style="width:64px;height:24px;bottom:10%;right:-1%"></div>
+    <div class="sh sh-l" style="width:28px;height:18px;bottom:16%;right:15%"></div>
+    <!-- 花 -->
+    <div class="fl" style="background:#FF7085;bottom:50%;left:18%"></div>
+    <div class="fl" style="background:#FBBF24;bottom:38%;left:10%"></div>
+    <div class="fl" style="background:#A78BFA;bottom:48%;right:17%"></div>
+    <div class="fl" style="background:#38BDF8;bottom:36%;right:10%"></div>
+    <div class="fl" style="background:#2DD4BF;bottom:24%;left:20%"></div>
+    <div class="fl" style="background:#FF7085;bottom:22%;right:20%"></div>
+  </div>
+
+  <!-- 微粒 -->
+  <div class="sparkle" style="width:3px;height:3px;top:8%;left:12%;animation-delay:0s"></div>
+  <div class="sparkle" style="width:2px;height:2px;top:15%;right:18%;animation-delay:.8s"></div>
+  <div class="sparkle" style="width:2px;height:2px;top:22%;left:8%;animation-delay:1.4s"></div>
+
+  <!-- ====== 棋盘（浮在世界上方） ====== -->
+  <div class="board-wrap">
+    <div class="board-frame">
+      <div class="board-grid" id="board"></div>
+    </div>
+  </div>
+
+  <!-- 底栏 -->
+  <div class="bottom-space">
+    <div class="bbar">
+      <div class="mcnt">✦ 36</div>
+      <div class="badge">Level 2 ›</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const P={
+starfish:`<svg viewBox="0 0 100 100"><defs><radialGradient id="sg" cx=".38" cy=".32"><stop offset="0%" stop-color="#FFB8C4"/><stop offset="45%" stop-color="#FF7085"/><stop offset="100%" stop-color="#CC4458"/></radialGradient></defs><path d="M50 8C53 18 56 26 64 26C64 26 78 16 82 18C80 24 72 34 70 38C76 42 88 44 90 48C86 52 74 52 68 54C70 60 78 74 76 78C72 76 60 68 56 64C52 70 52 82 50 86C48 82 48 70 44 64C40 68 28 76 24 78C22 74 30 60 32 54C26 52 14 52 10 48C12 44 24 42 30 38C28 34 20 24 18 18C22 16 36 26 36 26C44 26 47 18 50 8Z" fill="url(#sg)"/><path d="M50 8C47 18 44 26 36 26C36 26 22 16 18 18C20 24 28 34 30 38C24 42 12 44 10 48C14 52 26 52 32 54C30 60 22 74 24 78C28 76 40 68 44 64C48 70 48 82 50 86" fill="rgba(0,0,0,.1)"/><ellipse cx="38" cy="32" rx="8" ry="10" fill="rgba(255,255,255,.25)" transform="rotate(-15 38 32)"/><ellipse cx="34" cy="24" rx="4" ry="5" fill="rgba(255,255,255,.15)"/></svg>`,
+turtle:`<svg viewBox="0 0 100 100"><defs><radialGradient id="tg" cx=".38" cy=".32"><stop offset="0%" stop-color="#70ECD8"/><stop offset="45%" stop-color="#2DD4BF"/><stop offset="100%" stop-color="#18946E"/></radialGradient></defs><ellipse cx="50" cy="14" rx="10" ry="11" fill="#24BA9E"/><ellipse cx="16" cy="42" rx="11" ry="8" fill="#24BA9E" transform="rotate(-20 16 42)"/><ellipse cx="84" cy="42" rx="11" ry="8" fill="#24BA9E" transform="rotate(20 84 42)"/><ellipse cx="24" cy="78" rx="9" ry="7" fill="#24BA9E" transform="rotate(30 24 78)"/><ellipse cx="76" cy="78" rx="9" ry="7" fill="#24BA9E" transform="rotate(-30 76 78)"/><ellipse cx="50" cy="52" rx="32" ry="30" fill="url(#tg)"/><ellipse cx="50" cy="52" rx="32" ry="30" fill="rgba(0,0,0,.08)" style="clip-path:inset(0 0 0 52%)"/><ellipse cx="50" cy="50" rx="20" ry="18" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.8"/><circle cx="42" cy="42" r="6" fill="rgba(0,0,0,.07)"/><circle cx="58" cy="40" r="6" fill="rgba(0,0,0,.07)"/><circle cx="50" cy="56" r="7" fill="rgba(0,0,0,.07)"/><ellipse cx="40" cy="36" rx="7" ry="9" fill="rgba(255,255,255,.2)" transform="rotate(-12 40 36)"/><circle cx="46" cy="13" r="3" fill="#0C5040"/><circle cx="54" cy="13" r="3" fill="#0C5040"/></svg>`,
+shell:`<svg viewBox="0 0 100 100"><defs><radialGradient id="shg" cx=".36" cy=".28"><stop offset="0%" stop-color="#FFE070"/><stop offset="40%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#B88410"/></radialGradient></defs><path d="M50 10C34 10 14 24 10 48C8 62 14 76 26 84C34 90 42 92 50 92C58 92 66 90 74 84C86 76 92 62 90 48C86 24 66 10 50 10Z" fill="url(#shg)"/><path d="M50 10C34 10 14 24 10 48C8 62 14 76 26 84C34 90 42 92 50 92C50 52 50 10 50 10Z" fill="rgba(0,0,0,.1)"/><path d="M50 12Q42 50 38 88" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.8"/><path d="M50 12Q34 40 22 72" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.5"/><path d="M50 12Q58 50 62 88" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.8"/><path d="M50 12Q66 40 78 72" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.5"/><ellipse cx="38" cy="30" rx="8" ry="12" fill="rgba(255,255,255,.2)" transform="rotate(-8 38 30)"/></svg>`,
+jellyfish:`<svg viewBox="0 0 100 100"><defs><radialGradient id="jg" cx=".38" cy=".30"><stop offset="0%" stop-color="#CCBAFF"/><stop offset="40%" stop-color="#A78BFA"/><stop offset="100%" stop-color="#6C4CC0"/></radialGradient></defs><path d="M14 52Q10 28 20 16Q30 6 50 4Q70 6 80 16Q90 28 86 52Q72 58 50 54Q28 58 14 52Z" fill="url(#jg)"/><path d="M14 52Q10 28 20 16Q30 6 50 4Q50 30 14 52Z" fill="rgba(0,0,0,.09)"/><ellipse cx="36" cy="22" rx="9" ry="12" fill="rgba(255,255,255,.2)" transform="rotate(-10 36 22)"/><path d="M26 54Q20 68 24 78Q28 86 24 94" fill="none" stroke="#B8A0F4" stroke-width="4.5" stroke-linecap="round" opacity=".8"/><path d="M40 56Q36 72 40 82Q44 90 40 96" fill="none" stroke="#B8A0F4" stroke-width="4" stroke-linecap="round" opacity=".7"/><path d="M56 55Q60 72 56 82Q52 90 56 96" fill="none" stroke="#B8A0F4" stroke-width="4" stroke-linecap="round" opacity=".75"/><path d="M72 53Q78 66 74 76Q70 84 74 92" fill="none" stroke="#B8A0F4" stroke-width="4.5" stroke-linecap="round" opacity=".8"/><circle cx="40" cy="32" r="5" fill="rgba(255,255,255,.6)"/><circle cx="41" cy="33" r="2.5" fill="#4C2CA0"/><circle cx="60" cy="32" r="5" fill="rgba(255,255,255,.6)"/><circle cx="61" cy="33" r="2.5" fill="#4C2CA0"/></svg>`,
+drop:`<svg viewBox="0 0 100 100"><defs><radialGradient id="dg" cx=".38" cy=".35"><stop offset="0%" stop-color="#80DAFF"/><stop offset="40%" stop-color="#38BDF8"/><stop offset="100%" stop-color="#1480C0"/></radialGradient></defs><path d="M50 6C46 16 36 30 26 46Q14 64 16 76Q18 86 28 92Q36 96 50 96Q64 96 72 92Q82 86 84 76Q86 64 74 46C64 30 54 16 50 6Z" fill="url(#dg)"/><path d="M50 6C46 16 36 30 26 46Q14 64 16 76Q18 86 28 92Q36 96 50 96Q50 50 50 6Z" fill="rgba(0,0,0,.09)"/><ellipse cx="38" cy="48" rx="7" ry="14" fill="rgba(255,255,255,.22)" transform="rotate(-10 38 48)"/><circle cx="36" cy="36" r="5" fill="rgba(255,255,255,.15)"/></svg>`
+};
+const keys=['starfish','turtle','shell','jellyfish','drop'],board=document.getElementById('board');
+for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+  const cell=document.createElement('div');cell.className='gc';
+  const isObs=(r>=5&&c<6)||(r>=4&&c<4)||(r>=3&&c<2)||(r===3&&c===2);
+  if(isObs){cell.classList.add('obs');const b=document.createElement('div');b.className='obs-block';
+    b.innerHTML=`<div class="obs-stamp"><svg viewBox="0 0 100 100"><path d="M50 18Q32 22 24 44Q22 62 32 74Q42 84 50 84Q58 84 68 74Q78 62 76 44Q68 22 50 18Z" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="3"/></svg></div>`;
+    cell.appendChild(b);}
+  else cell.innerHTML=P[keys[Math.floor(Math.random()*keys.length)]];
+  board.appendChild(cell);
+}
+</script>
+</body>
+</html>
