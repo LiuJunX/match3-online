@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>末日重建 · WALL-E 风格三消</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#1a1410;min-height:100vh;display:flex;justify-content:center;user-select:none}
+
+.scene{width:100%;max-width:520px;position:relative;overflow:hidden}
+
+/* 背景：永恒黄昏 */
+.bg{position:absolute;inset:0;
+  background:linear-gradient(180deg,
+    #2a1c18 0%,
+    #3a2820 4%,
+    #5a3828 10%,
+    #8a5830 18%,
+    #c08040 28%,
+    #d8a050 36%,
+    #e0b868 42%,
+    #d8a858 50%,
+    #b08848 58%,
+    #887048 66%,
+    #686050 74%,
+    #585048 82%,
+    #484038 90%,
+    #383028 100%
+  )}
+
+/* 远景废墟剪影 */
+.ruins{position:absolute;bottom:26%;left:0;right:0;height:40%;z-index:1;overflow:hidden}
+.ruin{position:absolute;bottom:0;background:#2a2420;opacity:.35}
+.ruin-1{width:12%;height:55%;left:2%;border-radius:2px 2px 0 0}
+.ruin-2{width:8%;height:40%;left:10%;border-radius:1px 1px 0 0}
+.ruin-3{width:15%;height:65%;left:16%;border-radius:2px 4px 0 0}
+.ruin-4{width:6%;height:35%;left:28%;border-radius:1px 1px 0 0}
+.ruin-5{width:10%;height:48%;right:22%;border-radius:3px 2px 0 0}
+.ruin-6{width:14%;height:60%;right:10%;border-radius:2px 3px 0 0}
+.ruin-7{width:7%;height:38%;right:6%;border-radius:1px 1px 0 0}
+.ruin-8{width:18%;height:30%;right:0%;border-radius:0;opacity:.2}
+
+/* 地平线光晕 */
+.horizon-glow{position:absolute;top:30%;left:0;right:0;height:14%;z-index:1;
+  background:radial-gradient(ellipse 80% 100% at 50% 100%,rgba(224,184,104,.2),transparent)}
+
+/* 中景小绿植 */
+.sprout{position:absolute;z-index:2}
+.sprout-stem{width:2px;background:linear-gradient(180deg,#40a050,#308040);border-radius:1px;margin:0 auto}
+.sprout-leaf{width:8px;height:5px;border-radius:50%;position:absolute}
+.sprout-leaf-l{background:#38b050;transform:rotate(-30deg);left:-5px}
+.sprout-leaf-r{background:#48c060;transform:rotate(30deg);right:-5px}
+.sprout-glow{position:absolute;width:16px;height:16px;border-radius:50%;
+  background:radial-gradient(circle,rgba(80,200,100,.15),transparent);top:-4px;left:-7px}
+
+/* 近景散落零件 */
+.debris{position:absolute;z-index:2;opacity:.25}
+.debris-bolt{width:6px;height:6px;background:#8a7060;border-radius:1px;transform:rotate(45deg)}
+.debris-plate{width:14px;height:4px;background:#70645a;border-radius:1px}
+.debris-gear{width:8px;height:8px;border:2px solid #80705e;border-radius:50%}
+
+/* 飘浮尘埃 */
+.dust{position:absolute;border-radius:50%;pointer-events:none;z-index:6}
+.dust-warm{background:rgba(224,184,104,.3);animation:float-up 6s ease-in-out infinite}
+.dust-cool{background:rgba(180,170,160,.2);animation:float-up 8s ease-in-out infinite}
+@keyframes float-up{
+  0%{opacity:0;transform:translateY(10px)}
+  30%{opacity:1}
+  70%{opacity:1}
+  100%{opacity:0;transform:translateY(-20px)}
+}
+
+/* 棋盘 */
+.board-wrap{position:relative;z-index:5;padding:70px 4.5% 0}
+.board-frame{
+  /* 冷铁灰边框 — 金属废墟 */
+  background:linear-gradient(160deg,#78808c,#5a6470,#68727e,#4e5864);
+  border-radius:12px;padding:5px;
+  box-shadow:
+    2px 4px 8px rgba(0,0,0,.3),
+    4px 12px 24px rgba(0,0,0,.35),
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -1px 0 rgba(0,0,0,.3);
+  position:relative}
+/* 金属磨损高光 */
+.board-frame::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 25% 8%,rgba(255,255,255,.1) 0%,transparent 40%);
+  border-radius:12px;pointer-events:none}
+/* 铆钉装饰 */
+.rivet{position:absolute;width:8px;height:8px;border-radius:50%;z-index:6;
+  background:radial-gradient(circle at 35% 35%,#8a9098,#505860);
+  box-shadow:inset 0 -1px 1px rgba(0,0,0,.3),0 1px 1px rgba(255,255,255,.05)}
+.rivet-tl{top:6px;left:6px}.rivet-tr{top:6px;right:6px}
+.rivet-bl{bottom:6px;left:6px}.rivet-br{bottom:6px;right:6px}
+
+.board-grid{width:100%;
+  /* 暖砂岩底板 */
+  background:linear-gradient(180deg,#C8AE92,#BAA084);
+  border-radius:8px;display:grid;grid-template-columns:repeat(9,1fr);
+  gap:1px;padding:3px;
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.15),inset 1px 0 3px rgba(0,0,0,.08)}
+.gc{display:flex;align-items:center;justify-content:center;border-radius:3px;
+  background:rgba(180,160,136,.25);aspect-ratio:1;overflow:visible;position:relative;
+  cursor:pointer;transition:background .15s}
+.gc svg{width:98%;height:98%;transition:transform .15s;pointer-events:none}
+.gc:hover{background:rgba(180,160,136,.45)}
+.gc.selected{background:rgba(224,160,80,.35);box-shadow:inset 0 0 0 2px rgba(224,160,80,.5)}
+.gc.selected svg{transform:scale(1.12)}
+.gc.matching{animation:pop .35s ease-out forwards}
+@keyframes pop{
+  0%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.3);opacity:.5}
+  100%{transform:scale(0);opacity:0}
+}
+
+/* HUD */
+.hud{position:relative;z-index:5;padding:0 4.5%;margin-top:6px}
+.hbar{display:flex;align-items:center;justify-content:space-between;padding:6px 10px}
+.badge{background:rgba(0,0,0,.3);color:#d8b878;font-size:11px;padding:3px 12px;
+  border-radius:20px;font-weight:700;border:1px solid rgba(200,160,80,.2)}
+.score-wrap{color:rgba(224,184,120,.7);font-size:13px;font-weight:700}
+.score-wrap span{color:#e0a850;font-size:16px}
+.moves-wrap{color:rgba(200,180,150,.5);font-size:12px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="scene">
+  <!-- 背景 -->
+  <div class="bg"></div>
+  <div class="horizon-glow"></div>
+
+  <!-- 远景废墟 -->
+  <div class="ruins">
+    <div class="ruin ruin-1"></div>
+    <div class="ruin ruin-2"></div>
+    <div class="ruin ruin-3"></div>
+    <div class="ruin ruin-4"></div>
+    <div class="ruin ruin-5"></div>
+    <div class="ruin ruin-6"></div>
+    <div class="ruin ruin-7"></div>
+    <div class="ruin ruin-8"></div>
+  </div>
+
+  <!-- 小绿植 -->
+  <div class="sprout" style="bottom:30%;left:38%">
+    <div class="sprout-glow"></div>
+    <div class="sprout-leaf sprout-leaf-l" style="top:0"></div>
+    <div class="sprout-leaf sprout-leaf-r" style="top:0"></div>
+    <div class="sprout-stem" style="height:12px"></div>
+  </div>
+  <div class="sprout" style="bottom:28%;right:30%">
+    <div class="sprout-glow"></div>
+    <div class="sprout-leaf sprout-leaf-l" style="top:0"></div>
+    <div class="sprout-leaf sprout-leaf-r" style="top:0"></div>
+    <div class="sprout-stem" style="height:8px"></div>
+  </div>
+
+  <!-- 散落零件 -->
+  <div class="debris debris-bolt" style="bottom:26%;left:15%"></div>
+  <div class="debris debris-plate" style="bottom:24%;left:55%;transform:rotate(12deg)"></div>
+  <div class="debris debris-gear" style="bottom:27%;right:18%"></div>
+  <div class="debris debris-bolt" style="bottom:22%;right:40%;transform:rotate(20deg)"></div>
+
+  <!-- 尘埃微粒 -->
+  <div class="dust dust-warm" style="width:3px;height:3px;top:20%;left:15%;animation-delay:0s"></div>
+  <div class="dust dust-cool" style="width:2px;height:2px;top:35%;right:20%;animation-delay:1.5s"></div>
+  <div class="dust dust-warm" style="width:2px;height:2px;top:12%;right:30%;animation-delay:3s"></div>
+  <div class="dust dust-cool" style="width:3px;height:3px;top:45%;left:25%;animation-delay:4.5s"></div>
+  <div class="dust dust-warm" style="width:2px;height:2px;top:8%;left:50%;animation-delay:2s"></div>
+
+  <!-- 棋盘 -->
+  <div class="board-wrap">
+    <div class="board-frame">
+      <div class="rivet rivet-tl"></div>
+      <div class="rivet rivet-tr"></div>
+      <div class="rivet rivet-bl"></div>
+      <div class="rivet rivet-br"></div>
+      <div class="board-grid" id="board"></div>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div class="hud">
+    <div class="hbar">
+      <div class="score-wrap">Score: <span id="score">0</span></div>
+      <div class="moves-wrap">Moves: <span id="moves">30</span></div>
+      <div class="badge">Rebuild Lv.1 ›</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PIECES = {
+// ── 新五造型：末日重建，天然饱满，全约束满足 ──
+// 💡 灯泡 — 琥珀金，梨形（上圆下窄+底座）▽ 圆滑+直底
+// 填充率 ~33%  语义：光明、灵感、文明的火种
+bulb: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="bu" cx="33%" cy="28%"><stop offset="0%" stop-color="#F0C050"/><stop offset="60%" stop-color="#C89020"/><stop offset="100%" stop-color="#886010"/></radialGradient></defs><g filter="drop-shadow(2px 3px 1.5px rgba(0,0,0,.35))"><path d="M0-40C-22-40-36-26-36-8C-36 10-24 22-16 28L-16 34C-16 38-12 42-8 42L8 42C12 42 16 38 16 34L16 28C24 22 36 10 36-8C36-26 22-40 0-40Z" fill="url(#bu)"/><rect x="-12" y="34" width="24" height="4" rx="1" fill="#886010"/><rect x="-10" y="38" width="20" height="3" rx="1" fill="#786008"/><path d="M0-40C-22-40-36-26-36-8C-36 10-24 22-16 28L0-4Z" fill="rgba(255,255,255,.16)"/><ellipse cx="-12" cy="-18" rx="8" ry="10" fill="rgba(255,255,200,.22)" transform="rotate(-10 -12 -18)"/><path d="M-4 28L-4 14Q0 4 4 14L4 28" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="2"/></g></svg>`,
+
+// ❤️ 心脏 — 珊瑚红，饱满心形  倒△（双峰+尖底）双曲+尖角
+// 填充率 ~32%  语义：生命力、爱、温暖
+heart: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="he" cx="33%" cy="28%"><stop offset="0%" stop-color="#F07878"/><stop offset="60%" stop-color="#D04838"/><stop offset="100%" stop-color="#8A2018"/></radialGradient></defs><g filter="drop-shadow(2px 3px 1.5px rgba(0,0,0,.35))"><path d="M0-12C0-12-6-38-26-38C-42-38-44-18-44-12C-44 6-20 26 0 44C20 26 44 6 44-12C44-18 42-38 26-38C6-38 0-12 0-12Z" fill="url(#he)"/><path d="M0-12C0-12-6-38-26-38C-42-38-44-18-44-12C-44 6-20 26 0 44L0-12Z" fill="rgba(255,255,255,.14)"/><ellipse cx="-18" cy="-22" rx="8" ry="7" fill="rgba(255,220,200,.22)" transform="rotate(-20 -18 -22)"/></g></svg>`,
+
+// 🌰 种子 — 翠绿，橡果形（圆胖体+小帽盖）○ 有机圆润
+// 填充率 ~34%  语义：希望、新生、未来
+seed: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="se" cx="35%" cy="30%"><stop offset="0%" stop-color="#58E088"/><stop offset="60%" stop-color="#28B858"/><stop offset="100%" stop-color="#107838"/></radialGradient></defs><g filter="drop-shadow(2px 3px 1.5px rgba(0,0,0,.30))"><ellipse cx="0" cy="6" rx="32" ry="34" fill="url(#se)"/><path d="M-28-12Q-28-26-18-32Q-8-38 0-40Q8-38 18-32Q28-26 28-12Z" fill="#107838" opacity=".7"/><path d="M-22-14Q-20-28 0-34Q20-28 22-14" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1.5"/><rect x="-2" y="-44" width="4" height="8" rx="2" fill="#0A5828"/><ellipse cx="-10" cy="-4" rx="9" ry="11" fill="rgba(255,255,200,.14)" transform="rotate(-10 -10 -4)"/><circle cx="0" cy="10" r="16" fill="rgba(80,220,120,.05)"/></g></svg>`,
+
+// 🛡️ 盾牌 — 天蓝，盾形（上平下尖）△ 直边+弧底
+// 填充率 ~32%  语义：守护、坚韧、防护
+shield: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="sd" cx="35%" cy="28%"><stop offset="0%" stop-color="#60B8F8"/><stop offset="60%" stop-color="#2088D8"/><stop offset="100%" stop-color="#105898"/></radialGradient></defs><g filter="drop-shadow(2px 3px 1.5px rgba(0,0,0,.35))"><path d="M0-40L-36-28L-36-4Q-36 20-18 34Q-6 44 0 46Q6 44 18 34Q36 20 36-4L36-28Z" fill="url(#sd)"/><path d="M0-40L-36-28L-36-4Q-36 20-18 34L0 0Z" fill="rgba(255,255,255,.14)"/><path d="M0-30L0 36" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="2"/><path d="M-24-18L24-18" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="2"/><ellipse cx="-12" cy="-18" rx="7" ry="8" fill="rgba(200,230,255,.18)" transform="rotate(-8 -12 -18)"/></g></svg>`,
+
+// 💎 宝石 — 深紫，菱形切割宝石（上三角+下三角）◇ 纯直线切面
+// 填充率 ~30%  语义：珍贵、远方、希望的结晶
+gem: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="gm" cx="35%" cy="28%"><stop offset="0%" stop-color="#B868F0"/><stop offset="60%" stop-color="#8838C8"/><stop offset="100%" stop-color="#582088"/></radialGradient></defs><g filter="drop-shadow(2px 3px 1.5px rgba(0,0,0,.35))"><polygon points="0,-40 -38,-8 -24,8 0,44 24,8 38,-8" fill="url(#gm)"/><polygon points="0,-40 -38,-8 0,-4 38,-8" fill="rgba(255,255,255,.1)"/><polygon points="-38,-8 -24,8 0,-4" fill="rgba(255,255,255,.08)"/><line x1="-38" y1="-8" x2="38" y2="-8" stroke="rgba(255,255,255,.12)" stroke-width="1"/><line x1="-24" y1="8" x2="24" y2="8" stroke="rgba(255,255,255,.08)" stroke-width="1"/><line x1="0" y1="-40" x2="0" y2="-4" stroke="rgba(255,255,255,.06)" stroke-width="1"/><line x1="0" y1="-4" x2="0" y2="44" stroke="rgba(0,0,0,.06)" stroke-width="1"/><ellipse cx="-10" cy="-18" rx="6" ry="8" fill="rgba(255,220,255,.16)" transform="rotate(-12 -10 -18)"/></g></svg>`
+};
+
+const TYPES = ['bulb','heart','seed','shield','gem'];
+const COLS = 9, ROWS = 9;
+let grid = [], selected = null, busy = false, score = 0, moves = 30;
+
+const boardEl = document.getElementById('board');
+const scoreEl = document.getElementById('score');
+const movesEl = document.getElementById('moves');
+
+function init() {
+  grid = [];
+  for (let r = 0; r < ROWS; r++) {
+    grid[r] = [];
+    for (let c = 0; c < COLS; c++) {
+      let t;
+      do { t = Math.floor(Math.random() * TYPES.length); }
+      while ((c >= 2 && grid[r][c-1] === t && grid[r][c-2] === t) ||
+             (r >= 2 && grid[r-1][c] === t && grid[r-2][c] === t));
+      grid[r][c] = t;
+    }
+  }
+  render();
+}
+
+function render() {
+  boardEl.innerHTML = '';
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'gc';
+      if (grid[r][c] >= 0) cell.innerHTML = PIECES[TYPES[grid[r][c]]];
+      if (selected && selected.r === r && selected.c === c) cell.classList.add('selected');
+      cell.addEventListener('click', () => onCellClick(r, c));
+      boardEl.appendChild(cell);
+    }
+  }
+}
+
+function onCellClick(r, c) {
+  if (busy || moves <= 0 || grid[r][c] < 0) return;
+  if (!selected) { selected = {r, c}; render(); return; }
+  const dr = Math.abs(selected.r - r), dc = Math.abs(selected.c - c);
+  if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
+    trySwap(selected.r, selected.c, r, c);
+  } else { selected = {r, c}; render(); }
+}
+
+async function trySwap(r1, c1, r2, c2) {
+  busy = true; selected = null;
+  [grid[r1][c1], grid[r2][c2]] = [grid[r2][c2], grid[r1][c1]];
+  render();
+  if (findMatches().size === 0) {
+    await sleep(200);
+    [grid[r1][c1], grid[r2][c2]] = [grid[r2][c2], grid[r1][c1]];
+    render(); busy = false; return;
+  }
+  moves--; movesEl.textContent = moves;
+  await processCascade(); busy = false;
+}
+
+function findMatches() {
+  const m = new Set();
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS - 2; c++) {
+      const t = grid[r][c]; if (t < 0) continue;
+      if (grid[r][c+1] === t && grid[r][c+2] === t) {
+        let e = c+2; while (e+1 < COLS && grid[r][e+1] === t) e++;
+        for (let i = c; i <= e; i++) m.add(r*COLS+i);
+      }
+    }
+  for (let c = 0; c < COLS; c++)
+    for (let r = 0; r < ROWS - 2; r++) {
+      const t = grid[r][c]; if (t < 0) continue;
+      if (grid[r+1][c] === t && grid[r+2][c] === t) {
+        let e = r+2; while (e+1 < ROWS && grid[e+1][c] === t) e++;
+        for (let i = r; i <= e; i++) m.add(i*COLS+c);
+      }
+    }
+  return m;
+}
+
+async function processCascade() {
+  let matches = findMatches();
+  while (matches.size > 0) {
+    score += matches.size * 10; scoreEl.textContent = score;
+    const cells = boardEl.children;
+    for (const idx of matches) cells[idx].classList.add('matching');
+    await sleep(350);
+    for (const idx of matches) { grid[Math.floor(idx/COLS)][idx%COLS] = -1; }
+    for (let c = 0; c < COLS; c++) {
+      let w = ROWS-1;
+      for (let r = ROWS-1; r >= 0; r--) { if (grid[r][c] >= 0) { if (r !== w) { grid[w][c] = grid[r][c]; grid[r][c] = -1; } w--; } }
+    }
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        if (grid[r][c] < 0) grid[r][c] = Math.floor(Math.random() * TYPES.length);
+    render(); await sleep(150);
+    matches = findMatches();
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+init();
+</script>
+</body>
+</html>
