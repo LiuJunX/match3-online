@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E: 形体线质量 · 完整棋盘</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',sans-serif;background:#080a0e;min-height:100vh;display:flex;justify-content:center}
+
+.scene{
+  width:100%;max-width:520px;
+  position:relative;
+  overflow:hidden;
+}
+
+/* ====== 背景 ====== */
+.bg{position:absolute;inset:0;
+  background:linear-gradient(180deg,
+    #0e3d6e 0%,#1a5a8e 6%,#3088b8 14%,#58b0d4 22%,#88cce0 30%,
+    #b0d8d0 38%,#c8d4b8 46%,#a0bc80 55%,#80aa60 62%,#5e9848 70%,
+    #4c8c3a 80%,#3e7e30 90%,#347028 100%
+  )
+}
+.clouds{position:absolute;top:0;left:0;right:0;height:34%;pointer-events:none;z-index:1}
+.cloud{position:absolute;background:rgba(255,255,255,.4);border-radius:50%;filter:blur(7px)}
+.horizon{position:absolute;top:34%;left:0;right:0;height:6%;z-index:1;
+  background:linear-gradient(180deg,transparent,rgba(220,210,180,.12),rgba(240,230,200,.08),transparent)}
+.far-hills{position:absolute;top:42%;left:0;right:0;height:20%;z-index:1;overflow:hidden}
+.fh{position:absolute;bottom:0;border-radius:50% 50% 0 0;opacity:.3}
+.garden-layer{position:absolute;bottom:0;left:0;right:0;height:30%;z-index:1;overflow:hidden}
+.wall{position:absolute;top:6%;left:8%;right:8%;height:10px;
+  background:linear-gradient(180deg,#c4b49a,#a89878);border-radius:3px;
+  box-shadow:0 2px 4px rgba(0,0,0,.15)}
+.wall::before{content:'';position:absolute;top:-4px;left:-1%;right:-1%;height:5px;
+  background:linear-gradient(180deg,#d4c4aa,#bca88e);border-radius:3px}
+.spath{position:absolute;left:50%;transform:translateX(-50%);top:14%;bottom:0;width:20%;
+  background:linear-gradient(180deg,rgba(160,145,120,.2),rgba(150,135,110,.45));
+  clip-path:polygon(28% 0%,72% 0%,82% 100%,18% 100%)}
+.slab{width:50%;height:1.5px;background:rgba(100,90,70,.3);margin:4px auto;border-radius:1px}
+.sh{position:absolute;border-radius:50% 50% 46% 46%}
+.sh-l{background:radial-gradient(ellipse at 38% 33%,#6cc050,#4eaa3a,#38922c)}
+.sh-d{background:radial-gradient(ellipse at 38% 33%,#52a43e,#3c9030,#2a7a22)}
+.fl{position:absolute;width:5px;height:5px;border-radius:50%;opacity:.55}
+
+/* ====== 棋盘 ====== */
+.board-wrap{
+  position:relative;z-index:5;
+  padding:28px 4.5% 0;
+}
+.board-frame{
+  background:linear-gradient(160deg,#D8B048,#C09838,#D0A840,#B89030);
+  border-radius:14px;padding:5px;
+  box-shadow:
+    2px 4px 8px rgba(0,0,0,.2),
+    4px 12px 24px rgba(0,0,0,.25),
+    6px 24px 48px rgba(0,0,0,.15),
+    inset 0 2px 0 rgba(255,255,255,.18),
+    inset 0 -2px 0 rgba(0,0,0,.2);
+  position:relative;
+}
+.board-frame::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 20% 10%,rgba(255,255,255,.18) 0%,transparent 50%);
+  border-radius:14px;pointer-events:none}
+.board-frame::after{content:'';position:absolute;bottom:0;left:10%;right:10%;height:3px;
+  background:rgba(120,180,100,.08);border-radius:0 0 14px 14px;pointer-events:none}
+
+.board-grid{width:100%;
+  background:linear-gradient(180deg,#C4CCE0,#BCC6DC);
+  border-radius:10px;display:grid;grid-template-columns:repeat(9,1fr);
+  gap:1px;padding:3px;box-shadow:inset 0 3px 6px rgba(0,0,0,.12),inset 2px 0 4px rgba(0,0,0,.06)}
+.gc{display:flex;align-items:center;justify-content:center;border-radius:4px;
+  background:rgba(165,172,195,.3);aspect-ratio:1;overflow:visible}
+.gc svg{width:99%;height:99%;transition:transform .12s;filter:drop-shadow(1px 2px 1px rgba(0,0,0,.26))}
+.gc:hover svg{transform:scale(1.1)}
+.gc.obs{background:rgba(130,125,148,.28)}
+.obs-block{width:90%;height:90%;border-radius:18%;
+  background:linear-gradient(145deg,#B0A088,#9E8E78,#8E7E68);position:relative;overflow:hidden;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.08),inset 0 -2px 0 rgba(0,0,0,.14)}
+.obs-block::before{content:'';position:absolute;top:0;left:0;width:44%;height:44%;
+  background:rgba(255,255,255,.06);border-radius:18% 0 40% 0}
+.obs-stamp{position:absolute;inset:24%;opacity:.12}
+
+.bottom-space{position:relative;z-index:5;padding:0 4.5% 6px}
+.bbar{display:flex;align-items:center;justify-content:space-between;padding:6px 10px}
+.badge{background:rgba(0,0,0,.25);color:#fff;font-size:11px;padding:3px 12px;
+  border-radius:20px;font-weight:700;backdrop-filter:blur(4px)}
+.mcnt{color:rgba(255,255,255,.55);font-size:12px;font-weight:700}
+
+.sparkle{position:absolute;border-radius:50%;background:#fff;pointer-events:none;z-index:6;
+  animation:tw 2.5s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:.45;transform:scale(1)}}
+</style>
+</head>
+<body>
+<div class="scene">
+
+  <div class="bg"></div>
+  <div class="clouds">
+    <div class="cloud" style="width:90px;height:26px;top:3%;left:0%"></div>
+    <div class="cloud" style="width:60px;height:20px;top:1%;left:35%"></div>
+    <div class="cloud" style="width:70px;height:22px;top:5%;right:2%"></div>
+    <div class="cloud" style="width:50px;height:18px;top:8%;right:25%"></div>
+    <div class="cloud" style="width:80px;height:20px;top:10%;left:15%"></div>
+  </div>
+  <div class="horizon"></div>
+  <div class="far-hills">
+    <div class="fh" style="width:35%;height:60%;left:-4%;background:#7a9a6a"></div>
+    <div class="fh" style="width:25%;height:45%;left:18%;background:#8aaa78"></div>
+    <div class="fh" style="width:30%;height:55%;right:-2%;background:#7a9868"></div>
+    <div class="fh" style="width:20%;height:40%;right:22%;background:#88a874"></div>
+    <div class="fh" style="width:45%;height:30%;left:8%;background:#6e9858;opacity:.45"></div>
+    <div class="fh" style="width:40%;height:35%;right:5%;background:#6e9656;opacity:.45"></div>
+  </div>
+  <div class="garden-layer">
+    <div class="wall"></div>
+    <div class="spath">
+      <div style="padding-top:18%">
+        <div class="slab" style="width:34%"></div><div class="slab" style="width:40%"></div>
+        <div class="slab" style="width:46%"></div><div class="slab" style="width:52%"></div>
+        <div class="slab" style="width:58%"></div><div class="slab" style="width:62%"></div>
+        <div class="slab" style="width:66%"></div><div class="slab" style="width:70%"></div>
+      </div>
+    </div>
+    <div class="sh sh-d" style="width:48px;height:34px;bottom:52%;left:2%"></div>
+    <div class="sh sh-l" style="width:36px;height:26px;bottom:56%;left:13%"></div>
+    <div class="sh sh-l" style="width:54px;height:36px;bottom:38%;left:0%"></div>
+    <div class="sh sh-d" style="width:40px;height:28px;bottom:42%;left:12%"></div>
+    <div class="sh sh-d" style="width:60px;height:28px;bottom:22%;left:-1%"></div>
+    <div class="sh sh-l" style="width:44px;height:24px;bottom:26%;left:13%"></div>
+    <div class="sh sh-l" style="width:66px;height:26px;bottom:8%;left:-2%"></div>
+    <div class="sh sh-d" style="width:30px;height:20px;bottom:14%;left:14%"></div>
+    <div class="sh sh-l" style="width:44px;height:32px;bottom:54%;right:3%"></div>
+    <div class="sh sh-d" style="width:34px;height:24px;bottom:58%;right:14%"></div>
+    <div class="sh sh-d" style="width:50px;height:34px;bottom:40%;right:1%"></div>
+    <div class="sh sh-l" style="width:38px;height:26px;bottom:44%;right:13%"></div>
+    <div class="sh sh-l" style="width:58px;height:26px;bottom:24%;right:0%"></div>
+    <div class="sh sh-d" style="width:42px;height:22px;bottom:28%;right:14%"></div>
+    <div class="sh sh-d" style="width:64px;height:24px;bottom:10%;right:-1%"></div>
+    <div class="sh sh-l" style="width:28px;height:18px;bottom:16%;right:15%"></div>
+    <div class="fl" style="background:#F23C5A;bottom:50%;left:18%"></div>
+    <div class="fl" style="background:#FCB80C;bottom:38%;left:10%"></div>
+    <div class="fl" style="background:#9A2AFC;bottom:48%;right:17%"></div>
+    <div class="fl" style="background:#118AFC;bottom:36%;right:10%"></div>
+    <div class="fl" style="background:#0BED7C;bottom:24%;left:20%"></div>
+    <div class="fl" style="background:#F23C5A;bottom:22%;right:20%"></div>
+  </div>
+
+  <div class="sparkle" style="width:3px;height:3px;top:8%;left:12%;animation-delay:0s"></div>
+  <div class="sparkle" style="width:2px;height:2px;top:15%;right:18%;animation-delay:.8s"></div>
+  <div class="sparkle" style="width:2px;height:2px;top:22%;left:8%;animation-delay:1.4s"></div>
+
+  <div class="board-wrap">
+    <div class="board-frame">
+      <div class="board-grid" id="board"></div>
+    </div>
+  </div>
+
+  <div class="bottom-space">
+    <div class="bbar">
+      <div class="mcnt">✦ 36</div>
+      <div class="badge">Level 2 ›</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const FR = `<filter id="__ID__" x="-10%" y="-10%" width="120%" height="120%"><feMorphology operator="erode" radius="1.3" in="SourceAlpha" result="innerDk"/><feComposite operator="out" in="SourceAlpha" in2="innerDk" result="darkRim"/><feGaussianBlur in="darkRim" stdDeviation="0.9" result="softDark"/><feFlood flood-color="black" flood-opacity=".14" result="dkColor"/><feComposite operator="in" in="dkColor" in2="softDark" result="darkEdge"/><feMorphology operator="erode" radius="1.2" in="SourceAlpha" result="innerLt"/><feComposite operator="out" in="SourceAlpha" in2="innerLt" result="lightRim"/><feGaussianBlur in="lightRim" stdDeviation="1.5" result="softLight"/><feFlood flood-color="white" flood-opacity=".04" result="ltColor"/><feComposite operator="in" in="ltColor" in2="softLight" result="lightEdge"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="darkEdge"/><feMergeNode in="lightEdge"/></feMerge></filter>`;
+
+const P = {
+starfish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="sf" cx="35%" cy="30%"><stop offset="0%" stop-color="#D66B7D"/><stop offset="65%" stop-color="#DA3651"/><stop offset="100%" stop-color="#C83050"/></radialGradient><radialGradient id="sfcenter" cx="50%" cy="50%"><stop offset="0%" stop-color="rgba(0,0,0,.14)"/><stop offset="70%" stop-color="rgba(0,0,0,.08)"/><stop offset="100%" stop-color="rgba(0,0,0,0)"/></radialGradient>${FR.replace('__ID__','frsf')}</defs><g filter="url(#frsf)"><path d="M0-41Q10-35 17-18Q34-17 44-9Q40 5 27 14Q32 33 27 42Q14 41 0 33Q-14 41-27 42Q-32 33-27 14Q-40 5-44-9Q-34-17-17-18Q-10-35 0-41Z" fill="url(#sf)"/><circle cx="0" cy="0" r="9" fill="url(#sfcenter)"/><ellipse cx="-12" cy="-15" rx="7" ry="9" fill="rgba(255,255,255,.21)" transform="rotate(-20 -12 -15)"/></g></svg>`,
+
+turtle: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="tu" cx="35%" cy="30%"><stop offset="0%" stop-color="#3CCB84"/><stop offset="65%" stop-color="#0AD56F"/><stop offset="100%" stop-color="#15B565"/></radialGradient>${FR.replace('__ID__','frtu')}</defs><g filter="url(#frtu)"><ellipse cx="0" cy="-30" rx="9" ry="11" fill="#15B565"/><ellipse cx="-36" cy="-5" rx="11" ry="8" fill="#15B565" transform="rotate(-25 -36 -5)"/><ellipse cx="36" cy="-5" rx="11" ry="8" fill="#15B565" transform="rotate(25 36 -5)"/><ellipse cx="-28" cy="32" rx="9" ry="8" fill="#15B565" transform="rotate(35 -28 32)"/><ellipse cx="28" cy="32" rx="9" ry="8" fill="#15B565" transform="rotate(-35 28 32)"/><ellipse cx="0" cy="5" rx="34" ry="29" fill="url(#tu)"/><path d="M-22 5 A22 18 0 0 1 22 5" fill="none" stroke="rgba(0,0,0,.06)" stroke-width="1"/><path d="M-22 5 A22 18 0 0 0 22 5" fill="none" stroke="rgba(0,0,0,.14)" stroke-width="1.8"/><circle cx="-10" cy="-3" r="6" fill="rgba(0,0,0,.08)"/><circle cx="10" cy="-1" r="6" fill="rgba(0,0,0,.08)"/><circle cx="0" cy="12" r="6.5" fill="rgba(0,0,0,.08)"/><path d="M-1-12 L0.5 22 L-0.5 22 L1-12 Z" fill="rgba(0,0,0,.1)"/><ellipse cx="-10" cy="-7" rx="6" ry="8" fill="rgba(255,255,255,.18)" transform="rotate(-15 -10 -7)"/><circle cx="-5" cy="-28" r="2.8" fill="#1A5E3A"/><circle cx="5" cy="-28" r="2.8" fill="#1A5E3A"/><path d="M-7.2-29.5 Q-5-31.5 -2.8-29.5" fill="none" stroke="rgba(0,0,0,.18)" stroke-width=".9" stroke-linecap="round"/><path d="M2.8-29.5 Q5-31.5 7.2-29.5" fill="none" stroke="rgba(0,0,0,.18)" stroke-width=".9" stroke-linecap="round"/><circle cx="-4.5" cy="-28.5" r="1.1" fill="#fff" opacity=".5"/><circle cx="5.5" cy="-28.5" r="1.1" fill="#fff" opacity=".5"/></g></svg>`,
+
+shell: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="sh" cx="35%" cy="25%"><stop offset="0%" stop-color="#D9AD41"/><stop offset="65%" stop-color="#E3A50B"/><stop offset="100%" stop-color="#C09318"/></radialGradient>${FR.replace('__ID__','frsh')}</defs><g filter="url(#frsh)"><path d="M0-42C-9-40-30-27-37-8C-39 10-30 27-17 36C-6 42 6 42 17 36C30 27 39 10 37-8C30-27 9-40 0-42Z" fill="url(#sh)"/><path d="M-0.8-42 Q-13.5 0 -18 36 L-16.5 36 Q-12.5 0 0.8-42 Z" fill="rgba(0,0,0,.08)"/><path d="M-0.8-42 Q5.5 0 6.5 40 L5.5 40 Q4.5 0 0.8-42 Z" fill="rgba(0,0,0,.08)"/><path d="M0-42Q-22-5-33 20" fill="none" stroke="rgba(0,0,0,.06)" stroke-width="1"/><path d="M0-42Q18-5 31 17" fill="none" stroke="rgba(0,0,0,.06)" stroke-width="1"/><path d="M-30 2 Q0 8 30 2" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="1.3"/><ellipse cx="-11" cy="-20" rx="6" ry="11" fill="rgba(255,255,255,.15)" transform="rotate(-10 -11 -20)"/><circle cx="-6" cy="-30" r="3" fill="rgba(255,255,255,.15)"/></g></svg>`,
+
+jellyfish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="jf" cx="35%" cy="30%"><stop offset="0%" stop-color="#9D5BD9"/><stop offset="65%" stop-color="#8B26E3"/><stop offset="100%" stop-color="#7E2CC0"/></radialGradient>${FR.replace('__ID__','frjf')}</defs><g filter="url(#frjf)"><path d="M-40 6Q-42-12-32-26Q-18-38 0-40Q18-38 32-26Q42-12 40 6Q22 12 0 8Q-22 12-40 6Z" fill="url(#jf)"/><ellipse cx="-14" cy="-20" rx="8" ry="10" fill="rgba(255,255,255,.15)" transform="rotate(-12 -14 -20)"/><path d="M-21 8 Q-28 15 -20 21 Q-17 25 -20 30 L-24 30 Q-20 26 -24 22 Q-32 16 -27 7 Z" fill="#AE57F9" opacity=".8"/><path d="M-6 10 Q-10 19 -4.5 25 Q-1 29 -3.5 34 L-6.5 34 Q-3.5 29 -7.5 25 Q-14 19 -10.5 9 Z" fill="#AE57F9" opacity=".7"/><path d="M10 9 Q14.5 17 8.5 23 Q5 27 7.5 32 L10.5 32 Q7.5 27 11.5 23 Q17.5 17 14.5 8 Z" fill="#AE57F9" opacity=".8"/><path d="M24 7 Q30 13 23 19 Q19 23 22 28 L25 28 Q22 23 25 19 Q33 13 28.5 6 Z" fill="#AE57F9" opacity=".65"/><circle cx="-12" cy="-12" r="4.5" fill="rgba(255,255,255,.6)"/><circle cx="12" cy="-12" r="4.5" fill="rgba(255,255,255,.6)"/><path d="M-16-14 Q-12-17.5 -8-14" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="1.2" stroke-linecap="round"/><path d="M8-14 Q12-17.5 16-14" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="1.2" stroke-linecap="round"/><circle cx="-11" cy="-12.5" r="2.2" fill="#5E28B8"/><circle cx="13" cy="-12.5" r="2.2" fill="#5E28B8"/></g></svg>`,
+
+fish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="fi" cx="38%" cy="32%"><stop offset="0%" stop-color="#4591D9"/><stop offset="65%" stop-color="#0F7CE3"/><stop offset="100%" stop-color="#1A70C0"/></radialGradient>${FR.replace('__ID__','frfi')}</defs><g filter="url(#frfi)"><path d="M-10 18 Q-18 28 -24 42 Q-9 36 0 38 Q9 36 24 42 Q18 28 10 18 Z" fill="#1A70C0"/><path d="M-4 20 Q0 26 4 20" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="1.6" stroke-linecap="round"/><path d="M-5-33 Q0-48 5-33 L3-34 Q0-44 -3-34 Z" fill="#1A70C0"/><path d="M-31-3 Q-43 4 -35 15 L-36 16 Q-45 6 -35-8 Z" fill="#1A70C0"/><path d="M31-3 Q43 4 35 15 L36 16 Q45 6 35-8 Z" fill="#1A70C0"/><path d="M0-35C15-33 31-22 37-6C42 7 35 18 20 25C9 29 4 27 0 27C-4 27-9 29-20 25C-35 18-42 7-37-6C-31-22-15-33 0-35Z" fill="url(#fi)"/><path d="M-17-8 Q-13 1 -17 11 L-18.5 10 Q-15 1 -19-7 Z" fill="rgba(0,0,0,.15)"/><ellipse cx="-11" cy="-18" rx="5.5" ry="8.5" fill="rgba(255,255,255,.21)" transform="rotate(-12 -11 -18)"/><circle cx="-7" cy="-26" r="2.8" fill="rgba(255,255,255,.15)"/><circle cx="-11" cy="-12" r="5" fill="rgba(255,255,255,.65)"/><circle cx="11" cy="-12" r="5" fill="rgba(255,255,255,.65)"/><path d="M-15.5-14 Q-11-17.5 -6.5-14" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.4" stroke-linecap="round"/><path d="M6.5-14 Q11-17.5 15.5-14" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.4" stroke-linecap="round"/><circle cx="-10" cy="-12.5" r="2.5" fill="#1A5888"/><circle cx="12" cy="-12.5" r="2.5" fill="#1A5888"/><circle cx="-9.5" cy="-13" r="1" fill="#fff" opacity=".6"/><circle cx="12.5" cy="-13" r="1" fill="#fff" opacity=".6"/></g></svg>`
+};
+
+const keys = ['starfish','turtle','shell','jellyfish','fish'];
+const board = document.getElementById('board');
+
+let seed = 99;
+function rand(){seed=(seed*16807+0)%2147483647;return seed/2147483647;}
+
+for(let r=0;r<9;r++){
+  for(let c=0;c<9;c++){
+    const cell = document.createElement('div');
+    cell.className = 'gc';
+    const isObs = (r>=5&&c<6)||(r>=4&&c<4)||(r>=3&&c<2)||(r===3&&c===2);
+    if(isObs){
+      cell.classList.add('obs');
+      const b = document.createElement('div');
+      b.className = 'obs-block';
+      b.innerHTML = `<div class="obs-stamp"><svg viewBox="0 0 100 100"><path d="M50 18Q32 22 24 44Q22 62 32 74Q42 84 50 84Q58 84 68 74Q78 62 76 44Q68 22 50 18Z" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="3"/></svg></div>`;
+      cell.appendChild(b);
+    } else {
+      cell.innerHTML = P[keys[Math.floor(rand()*keys.length)]];
+    }
+    board.appendChild(cell);
+  }
+}
+</script>
+</body>
+</html>
