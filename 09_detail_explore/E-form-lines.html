@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>E: 形体线质量</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:sans-serif;background:#C4CCE0;padding:16px}
+h2{color:#444;font-size:14px;margin-bottom:8px}
+.section{margin-bottom:24px}
+.row{display:flex;gap:6px}
+.cell{width:140px;height:140px;background:rgba(165,172,195,.3);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.cell svg{width:130px;height:130px;filter:drop-shadow(1px 2px 1px rgba(0,0,0,.26))}
+.label{font-size:10px;color:#888;text-align:center;margin-top:2px}
+</style>
+</head>
+<body>
+
+<div class="section">
+<h2>原版</h2>
+<div class="row" id="orig"></div>
+</div>
+<div class="section">
+<h2>E: 形体线质量 — 粗细跟形体走，虚实跟遮挡走，已有线条同步优化</h2>
+<div class="row" id="rowE"></div>
+</div>
+
+<script>
+const FR = `<filter id="__ID__" x="-10%" y="-10%" width="120%" height="120%"><feMorphology operator="erode" radius="1.3" in="SourceAlpha" result="innerDk"/><feComposite operator="out" in="SourceAlpha" in2="innerDk" result="darkRim"/><feGaussianBlur in="darkRim" stdDeviation="0.9" result="softDark"/><feFlood flood-color="black" flood-opacity=".14" result="dkColor"/><feComposite operator="in" in="dkColor" in2="softDark" result="darkEdge"/><feMorphology operator="erode" radius="1.2" in="SourceAlpha" result="innerLt"/><feComposite operator="out" in="SourceAlpha" in2="innerLt" result="lightRim"/><feGaussianBlur in="lightRim" stdDeviation="1.5" result="softLight"/><feFlood flood-color="white" flood-opacity=".04" result="ltColor"/><feComposite operator="in" in="ltColor" in2="softLight" result="lightEdge"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="darkEdge"/><feMergeNode in="lightEdge"/></feMerge></filter>`;
+function mkFR(id){ return FR.replace('__ID__', id); }
+
+// ======== 原版 ========
+const O = {
+starfish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="osf" cx="35%" cy="30%"><stop offset="0%" stop-color="#D66B7D"/><stop offset="65%" stop-color="#DA3651"/><stop offset="100%" stop-color="#C83050"/></radialGradient>${mkFR('ofrsf')}</defs><g filter="url(#ofrsf)"><path d="M0-41Q10-35 17-18Q34-17 44-9Q40 5 27 14Q32 33 27 42Q14 41 0 33Q-14 41-27 42Q-32 33-27 14Q-40 5-44-9Q-34-17-17-18Q-10-35 0-41Z" fill="url(#osf)"/><ellipse cx="-12" cy="-15" rx="7" ry="9" fill="rgba(255,255,255,.21)" transform="rotate(-20 -12 -15)"/></g></svg>`,
+turtle: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="otu" cx="35%" cy="30%"><stop offset="0%" stop-color="#3CCB84"/><stop offset="65%" stop-color="#0AD56F"/><stop offset="100%" stop-color="#15B565"/></radialGradient>${mkFR('ofrtu')}</defs><g filter="url(#ofrtu)"><ellipse cx="0" cy="-30" rx="9" ry="11" fill="#15B565"/><ellipse cx="-36" cy="-5" rx="11" ry="8" fill="#15B565" transform="rotate(-25 -36 -5)"/><ellipse cx="36" cy="-5" rx="11" ry="8" fill="#15B565" transform="rotate(25 36 -5)"/><ellipse cx="-28" cy="32" rx="9" ry="8" fill="#15B565" transform="rotate(35 -28 32)"/><ellipse cx="28" cy="32" rx="9" ry="8" fill="#15B565" transform="rotate(-35 28 32)"/><ellipse cx="0" cy="5" rx="34" ry="29" fill="url(#otu)"/><ellipse cx="0" cy="5" rx="22" ry="18" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/><circle cx="-10" cy="-3" r="6" fill="rgba(0,0,0,.08)"/><circle cx="10" cy="-1" r="6" fill="rgba(0,0,0,.08)"/><circle cx="0" cy="12" r="6.5" fill="rgba(0,0,0,.08)"/><ellipse cx="-10" cy="-7" rx="6" ry="8" fill="rgba(255,255,255,.18)" transform="rotate(-15 -10 -7)"/><circle cx="-5" cy="-28" r="2.8" fill="#1A5E3A"/><circle cx="5" cy="-28" r="2.8" fill="#1A5E3A"/><circle cx="-4.5" cy="-28.5" r="1.1" fill="#fff" opacity=".5"/><circle cx="5.5" cy="-28.5" r="1.1" fill="#fff" opacity=".5"/></g></svg>`,
+shell: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="osh" cx="35%" cy="25%"><stop offset="0%" stop-color="#D9AD41"/><stop offset="65%" stop-color="#E3A50B"/><stop offset="100%" stop-color="#C09318"/></radialGradient>${mkFR('ofrsh')}</defs><g filter="url(#ofrsh)"><path d="M0-42C-9-40-30-27-37-8C-39 10-30 27-17 36C-6 42 6 42 17 36C30 27 39 10 37-8C30-27 9-40 0-42Z" fill="url(#osh)"/><path d="M0-42Q-13 0-17 36" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/><path d="M0-42Q-22-5-33 20" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.2"/><path d="M0-42Q5 0 6 40" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/><path d="M0-42Q18-5 31 17" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="1.2"/><ellipse cx="-11" cy="-20" rx="6" ry="11" fill="rgba(255,255,255,.15)" transform="rotate(-10 -11 -20)"/><circle cx="-6" cy="-30" r="3" fill="rgba(255,255,255,.15)"/></g></svg>`,
+jellyfish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="ojf" cx="35%" cy="30%"><stop offset="0%" stop-color="#9D5BD9"/><stop offset="65%" stop-color="#8B26E3"/><stop offset="100%" stop-color="#7E2CC0"/></radialGradient>${mkFR('ofrjf')}</defs><g filter="url(#ofrjf)"><path d="M-40 6Q-42-12-32-26Q-18-38 0-40Q18-38 32-26Q42-12 40 6Q22 12 0 8Q-22 12-40 6Z" fill="url(#ojf)"/><ellipse cx="-14" cy="-20" rx="8" ry="10" fill="rgba(255,255,255,.15)" transform="rotate(-12 -14 -20)"/><path d="M-24 8Q-30 16-22 22Q-18 26-22 30" fill="none" stroke="#AE57F9" stroke-width="5.5" stroke-linecap="round" opacity=".8"/><path d="M-8 10Q-12 20-6 26Q-2 30-5 34" fill="none" stroke="#AE57F9" stroke-width="5" stroke-linecap="round" opacity=".7"/><path d="M12 9Q16 18 10 24Q6 28 9 32" fill="none" stroke="#AE57F9" stroke-width="5.5" stroke-linecap="round" opacity=".8"/><path d="M26 7Q32 14 24 20Q20 24 24 28" fill="none" stroke="#AE57F9" stroke-width="4.5" stroke-linecap="round" opacity=".65"/><circle cx="-12" cy="-12" r="4.5" fill="rgba(255,255,255,.6)"/><circle cx="12" cy="-12" r="4.5" fill="rgba(255,255,255,.6)"/><circle cx="-11" cy="-12.5" r="2.2" fill="#5E28B8"/><circle cx="13" cy="-12.5" r="2.2" fill="#5E28B8"/></g></svg>`,
+fish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="ofi" cx="38%" cy="32%"><stop offset="0%" stop-color="#4591D9"/><stop offset="65%" stop-color="#0F7CE3"/><stop offset="100%" stop-color="#1A70C0"/></radialGradient>${mkFR('ofrfi')}</defs><g filter="url(#ofrfi)"><path d="M-11 18Q-20 29-24 42Q-9 36 0 38Q9 36 24 42Q20 29 11 18Z" fill="#1A70C0"/><path d="M-4-33Q0-46 4-33" fill="#1A70C0"/><path d="M-33-6Q-44 5-35 16" fill="none" stroke="#1A70C0" stroke-width="5.5" stroke-linecap="round"/><path d="M33-6Q44 5 35 16" fill="none" stroke="#1A70C0" stroke-width="5.5" stroke-linecap="round"/><path d="M0-35C15-33 31-22 37-6C42 7 35 18 20 25C9 29 4 27 0 27C-4 27-9 29-20 25C-35 18-42 7-37-6C-31-22-15-33 0-35Z" fill="url(#ofi)"/><ellipse cx="-11" cy="-18" rx="5.5" ry="8.5" fill="rgba(255,255,255,.21)" transform="rotate(-12 -11 -18)"/><circle cx="-7" cy="-26" r="2.8" fill="rgba(255,255,255,.15)"/><circle cx="-11" cy="-12" r="5" fill="rgba(255,255,255,.65)"/><circle cx="11" cy="-12" r="5" fill="rgba(255,255,255,.65)"/><circle cx="-10" cy="-12.5" r="2.5" fill="#1A5888"/><circle cx="12" cy="-12.5" r="2.5" fill="#1A5888"/><circle cx="-9.5" cy="-13" r="1" fill="#fff" opacity=".6"/><circle cx="12.5" cy="-13" r="1" fill="#fff" opacity=".6"/></g></svg>`
+};
+
+// ======== E: 形体线质量 ========
+// 核心改动: 已有线条的粗细虚实跟形体/遮挡走 + 每个元素1个身份细节
+const E = {
+
+// === 鱼 ===
+// 改动:
+// 1. 胸鳍: 等宽stroke → 填充锥形(根粗尖细), 根部=遮挡处加重
+// 2. 眼睛: 均匀圆 → 上眼睑加重弧(遮挡), 下缘虚化
+// 3. 鳃弧: 锥形填充(上粗下细, 跟体积转折一致)
+// 4. 背鳍: 根部加重(遮挡处)
+// 5. 尾鳍: 分叉处加重(遮挡)
+fish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="efi" cx="38%" cy="32%"><stop offset="0%" stop-color="#4591D9"/><stop offset="65%" stop-color="#0F7CE3"/><stop offset="100%" stop-color="#1A70C0"/></radialGradient>${mkFR('efrfi')}</defs><g filter="url(#efrfi)">
+<!-- 尾鳍: 分叉处(遮挡)加重 → 用填充路径, 根部宽尖部窄 -->
+<path d="M-10 18 Q-18 28 -24 42 Q-9 36 0 38 Q9 36 24 42 Q18 28 10 18 Z" fill="#1A70C0"/>
+<path d="M-4 20 Q0 26 4 20" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="1.6" stroke-linecap="round"/>
+<!-- 背鳍: 根部(贴体)粗, 尖部细 → 填充锥形 -->
+<path d="M-5-33 Q0-48 5-33 L3-34 Q0-44 -3-34 Z" fill="#1A70C0"/>
+<!-- 左胸鳍: 锥形填充 — 根部(遮挡处)宽5, 尖部宽2 -->
+<path d="M-31-3 Q-43 4 -35 15 L-36 16 Q-45 6 -35-8 Z" fill="#1A70C0"/>
+<!-- 右胸鳍: 对称锥形 -->
+<path d="M31-3 Q43 4 35 15 L36 16 Q45 6 35-8 Z" fill="#1A70C0"/>
+<!-- 身体 -->
+<path d="M0-35C15-33 31-22 37-6C42 7 35 18 20 25C9 29 4 27 0 27C-4 27-9 29-20 25C-35 18-42 7-37-6C-31-22-15-33 0-35Z" fill="url(#efi)"/>
+<!-- 鳃弧: 锥形(上端粗=近眼遮挡, 下端细=消失于体) -->
+<path d="M-17-8 Q-13 1 -17 11 L-18.5 10 Q-15 1 -19-7 Z" fill="rgba(0,0,0,.15)"/>
+<!-- 高光 -->
+<ellipse cx="-11" cy="-18" rx="5.5" ry="8.5" fill="rgba(255,255,255,.21)" transform="rotate(-12 -11 -18)"/>
+<circle cx="-7" cy="-26" r="2.8" fill="rgba(255,255,255,.15)"/>
+<!-- 眼白 -->
+<circle cx="-11" cy="-12" r="5" fill="rgba(255,255,255,.65)"/>
+<circle cx="11" cy="-12" r="5" fill="rgba(255,255,255,.65)"/>
+<!-- 上眼睑: 遮挡加重弧 — 上缘实、下缘虚 -->
+<path d="M-15.5-14 Q-11-17.5 -6.5-14" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.4" stroke-linecap="round"/>
+<path d="M6.5-14 Q11-17.5 15.5-14" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="1.4" stroke-linecap="round"/>
+<!-- 瞳孔 -->
+<circle cx="-10" cy="-12.5" r="2.5" fill="#1A5888"/>
+<circle cx="12" cy="-12.5" r="2.5" fill="#1A5888"/>
+<!-- 眼高光 -->
+<circle cx="-9.5" cy="-13" r="1" fill="#fff" opacity=".6"/>
+<circle cx="12.5" cy="-13" r="1" fill="#fff" opacity=".6"/>
+</g></svg>`,
+
+// === 海星 ===
+// 改动:
+// 1. 中心盘: 用柔和渐变圆代替实心圆, 边缘虚化(不是硬圈)
+// 2. 保持干净 — 海星造型本身就是它的身份
+starfish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="esf" cx="35%" cy="30%"><stop offset="0%" stop-color="#D66B7D"/><stop offset="65%" stop-color="#DA3651"/><stop offset="100%" stop-color="#C83050"/></radialGradient><radialGradient id="esfcenter" cx="50%" cy="50%"><stop offset="0%" stop-color="rgba(0,0,0,.14)"/><stop offset="70%" stop-color="rgba(0,0,0,.08)"/><stop offset="100%" stop-color="rgba(0,0,0,0)"/></radialGradient>${mkFR('efrsf')}</defs><g filter="url(#efrsf)">
+<path d="M0-41Q10-35 17-18Q34-17 44-9Q40 5 27 14Q32 33 27 42Q14 41 0 33Q-14 41-27 42Q-32 33-27 14Q-40 5-44-9Q-34-17-17-18Q-10-35 0-41Z" fill="url(#esf)"/>
+<!-- 中心盘: 径向渐变, 中心实边缘虚 — 暗示臂的发散起点 -->
+<circle cx="0" cy="0" r="9" fill="url(#esfcenter)"/>
+<ellipse cx="-12" cy="-15" rx="7" ry="9" fill="rgba(255,255,255,.21)" transform="rotate(-20 -12 -15)"/>
+</g></svg>`,
+
+// === 海龟 ===
+// 改动:
+// 1. 壳内椭圆: 底部(承重)加重, 顶部(受光)虚化
+// 2. 眼睛: 加上眼睑重弧
+// 3. 中脊: 锥形(头端粗→尾端细, 跟壳的收窄一致)
+turtle: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="etu" cx="35%" cy="30%"><stop offset="0%" stop-color="#3CCB84"/><stop offset="65%" stop-color="#0AD56F"/><stop offset="100%" stop-color="#15B565"/></radialGradient>${mkFR('efrtu')}</defs><g filter="url(#efrtu)">
+<!-- 头 -->
+<ellipse cx="0" cy="-30" rx="9" ry="11" fill="#15B565"/>
+<!-- 四肢: 根粗(遮挡)尖细 — 用椭圆近似已够, 但微调遮挡处 -->
+<ellipse cx="-36" cy="-5" rx="11" ry="8" fill="#15B565" transform="rotate(-25 -36 -5)"/>
+<ellipse cx="36" cy="-5" rx="11" ry="8" fill="#15B565" transform="rotate(25 36 -5)"/>
+<ellipse cx="-28" cy="32" rx="9" ry="8" fill="#15B565" transform="rotate(35 -28 32)"/>
+<ellipse cx="28" cy="32" rx="9" ry="8" fill="#15B565" transform="rotate(-35 28 32)"/>
+<!-- 壳体 -->
+<ellipse cx="0" cy="5" rx="34" ry="29" fill="url(#etu)"/>
+<!-- 壳内线: 底部(承重/暗面)粗.12, 顶部(受光)细.06 → 用两段弧模拟 -->
+<path d="M-22 5 A22 18 0 0 1 22 5" fill="none" stroke="rgba(0,0,0,.06)" stroke-width="1"/>
+<path d="M-22 5 A22 18 0 0 0 22 5" fill="none" stroke="rgba(0,0,0,.14)" stroke-width="1.8"/>
+<!-- 壳纹圆 -->
+<circle cx="-10" cy="-3" r="6" fill="rgba(0,0,0,.08)"/>
+<circle cx="10" cy="-1" r="6" fill="rgba(0,0,0,.08)"/>
+<circle cx="0" cy="12" r="6.5" fill="rgba(0,0,0,.08)"/>
+<!-- 中脊: 锥形(头端宽→尾端窄, 跟壳收窄一致) -->
+<path d="M-1-12 L0.5 22 L-0.5 22 L1-12 Z" fill="rgba(0,0,0,.1)"/>
+<!-- 高光 -->
+<ellipse cx="-10" cy="-7" rx="6" ry="8" fill="rgba(255,255,255,.18)" transform="rotate(-15 -10 -7)"/>
+<!-- 眼 + 上眼睑重弧 -->
+<circle cx="-5" cy="-28" r="2.8" fill="#1A5E3A"/>
+<circle cx="5" cy="-28" r="2.8" fill="#1A5E3A"/>
+<path d="M-7.2-29.5 Q-5-31.5 -2.8-29.5" fill="none" stroke="rgba(0,0,0,.18)" stroke-width=".9" stroke-linecap="round"/>
+<path d="M2.8-29.5 Q5-31.5 7.2-29.5" fill="none" stroke="rgba(0,0,0,.18)" stroke-width=".9" stroke-linecap="round"/>
+<circle cx="-4.5" cy="-28.5" r="1.1" fill="#fff" opacity=".5"/>
+<circle cx="5.5" cy="-28.5" r="1.1" fill="#fff" opacity=".5"/>
+</g></svg>`,
+
+// === 贝壳 ===
+// 改动:
+// 1. 脊线: 从顶部发散, 顶端(汇聚处/遮挡)粗 → 底端(展开处)细
+//    用填充锥形代替等宽stroke
+// 2. 1条生长弧(中部): 中间实两端虚
+shell: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="esh" cx="35%" cy="25%"><stop offset="0%" stop-color="#D9AD41"/><stop offset="65%" stop-color="#E3A50B"/><stop offset="100%" stop-color="#C09318"/></radialGradient>${mkFR('efrsh')}</defs><g filter="url(#efrsh)">
+<path d="M0-42C-9-40-30-27-37-8C-39 10-30 27-17 36C-6 42 6 42 17 36C30 27 39 10 37-8C30-27 9-40 0-42Z" fill="url(#esh)"/>
+<!-- 主脊线(左): 顶端粗1.8→底端细0.6, 填充锥形 -->
+<path d="M-0.8-42 Q-13.5 0 -18 36 L-16.5 36 Q-12.5 0 0.8-42 Z" fill="rgba(0,0,0,.08)"/>
+<!-- 主脊线(右): 对称 -->
+<path d="M-0.8-42 Q5.5 0 6.5 40 L5.5 40 Q4.5 0 0.8-42 Z" fill="rgba(0,0,0,.08)"/>
+<!-- 次脊(左外): 更细, 从顶部发散 -->
+<path d="M0-42Q-22-5-33 20" fill="none" stroke="rgba(0,0,0,.06)" stroke-width="1"/>
+<!-- 次脊(右外): -->
+<path d="M0-42Q18-5 31 17" fill="none" stroke="rgba(0,0,0,.06)" stroke-width="1"/>
+<!-- 生长弧(中部): 中间实.13 两端渐虚 — 用一条弧, opacity适中 -->
+<path d="M-30 2 Q0 8 30 2" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="1.3"/>
+<!-- 高光 -->
+<ellipse cx="-11" cy="-20" rx="6" ry="11" fill="rgba(255,255,255,.15)" transform="rotate(-10 -11 -20)"/>
+<circle cx="-6" cy="-30" r="3" fill="rgba(255,255,255,.15)"/>
+</g></svg>`,
+
+// === 水母 ===
+// 改动:
+// 1. 触手: 根部(贴伞=遮挡)粗 → 尖部细, 用填充锥形
+// 2. 眼睛: 加上眼睑重弧
+// 3. 伞缘: 遮挡处(触手根)稍加重
+jellyfish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="ejf" cx="35%" cy="30%"><stop offset="0%" stop-color="#9D5BD9"/><stop offset="65%" stop-color="#8B26E3"/><stop offset="100%" stop-color="#7E2CC0"/></radialGradient>${mkFR('efrjf')}</defs><g filter="url(#efrjf)">
+<!-- 伞体 -->
+<path d="M-40 6Q-42-12-32-26Q-18-38 0-40Q18-38 32-26Q42-12 40 6Q22 12 0 8Q-22 12-40 6Z" fill="url(#ejf)"/>
+<!-- 高光 -->
+<ellipse cx="-14" cy="-20" rx="8" ry="10" fill="rgba(255,255,255,.15)" transform="rotate(-12 -14 -20)"/>
+<!-- 触手: 根粗尖细 — 用填充路径代替等宽stroke -->
+<!-- 触手1(左外): 根宽6→尖宽2 -->
+<path d="M-21 8 Q-28 15 -20 21 Q-17 25 -20 30 L-24 30 Q-20 26 -24 22 Q-32 16 -27 7 Z" fill="#AE57F9" opacity=".8"/>
+<!-- 触手2(左内): 根宽5→尖宽1.5 -->
+<path d="M-6 10 Q-10 19 -4.5 25 Q-1 29 -3.5 34 L-6.5 34 Q-3.5 29 -7.5 25 Q-14 19 -10.5 9 Z" fill="#AE57F9" opacity=".7"/>
+<!-- 触手3(右内): -->
+<path d="M10 9 Q14.5 17 8.5 23 Q5 27 7.5 32 L10.5 32 Q7.5 27 11.5 23 Q17.5 17 14.5 8 Z" fill="#AE57F9" opacity=".8"/>
+<!-- 触手4(右外): 最细 -->
+<path d="M24 7 Q30 13 23 19 Q19 23 22 28 L25 28 Q22 23 25 19 Q33 13 28.5 6 Z" fill="#AE57F9" opacity=".65"/>
+<!-- 眼白 -->
+<circle cx="-12" cy="-12" r="4.5" fill="rgba(255,255,255,.6)"/>
+<circle cx="12" cy="-12" r="4.5" fill="rgba(255,255,255,.6)"/>
+<!-- 上眼睑重弧 -->
+<path d="M-16-14 Q-12-17.5 -8-14" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="1.2" stroke-linecap="round"/>
+<path d="M8-14 Q12-17.5 16-14" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="1.2" stroke-linecap="round"/>
+<!-- 瞳孔 -->
+<circle cx="-11" cy="-12.5" r="2.2" fill="#5E28B8"/>
+<circle cx="13" cy="-12.5" r="2.2" fill="#5E28B8"/>
+</g></svg>`
+
+};
+
+const names = ['海星','海龟','贝壳','水母','鱼'];
+const keys = ['starfish','turtle','shell','jellyfish','fish'];
+
+function fillRow(id, data) {
+  const row = document.getElementById(id);
+  keys.forEach((k,i) => {
+    const wrap = document.createElement('div');
+    wrap.style.textAlign = 'center';
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.innerHTML = data[k];
+    const lbl = document.createElement('div');
+    lbl.className = 'label';
+    lbl.textContent = names[i];
+    wrap.appendChild(cell);
+    wrap.appendChild(lbl);
+    row.appendChild(wrap);
+  });
+}
+
+fillRow('orig', O);
+fillRow('rowE', E);
+</script>
+</body>
+</html>
