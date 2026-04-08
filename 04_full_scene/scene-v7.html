@@ -153,12 +153,12 @@ body{font-family:'Noto Sans SC',sans-serif;background:#080a0e;min-height:100vh;d
     <div class="sh sh-d" style="width:64px;height:24px;bottom:10%;right:-1%"></div>
     <div class="sh sh-l" style="width:28px;height:18px;bottom:16%;right:15%"></div>
     <!-- 花：使用 C3 配色 -->
-    <div class="fl" style="background:#d90000;bottom:50%;left:18%"></div>
+    <div class="fl" style="background:#ff392b;bottom:50%;left:18%"></div>
     <div class="fl" style="background:#f0db00;bottom:38%;left:10%"></div>
     <div class="fl" style="background:#bf19cd;bottom:48%;right:17%"></div>
     <div class="fl" style="background:#0088ff;bottom:36%;right:10%"></div>
     <div class="fl" style="background:#03ad03;bottom:24%;left:20%"></div>
-    <div class="fl" style="background:#d90000;bottom:22%;right:20%"></div>
+    <div class="fl" style="background:#ff392b;bottom:22%;right:20%"></div>
   </div>
 
   <div class="sparkle" style="width:3px;height:3px;top:8%;left:12%;animation-delay:0s"></div>
@@ -189,7 +189,7 @@ body{font-family:'Noto Sans SC',sans-serif;background:#080a0e;min-height:100vh;d
 const FR = `<filter id="__ID__" x="-10%" y="-10%" width="120%" height="120%"><feMorphology operator="erode" radius="1.3" in="SourceAlpha" result="innerDk"/><feComposite operator="out" in="SourceAlpha" in2="innerDk" result="darkRim"/><feGaussianBlur in="darkRim" stdDeviation="0.9" result="softDark"/><feFlood flood-color="black" flood-opacity=".14" result="dkColor"/><feComposite operator="in" in="dkColor" in2="softDark" result="darkEdge"/><feMorphology operator="erode" radius="1.2" in="SourceAlpha" result="innerLt"/><feComposite operator="out" in="SourceAlpha" in2="innerLt" result="lightRim"/><feGaussianBlur in="lightRim" stdDeviation="1.5" result="softLight"/><feFlood flood-color="white" flood-opacity=".04" result="ltColor"/><feComposite operator="in" in="ltColor" in2="softLight" result="lightEdge"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="darkEdge"/><feMergeNode in="lightEdge"/></feMerge></filter>`;
 
 const P = {
-starfish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="sf" cx="35%" cy="30%"><stop offset="0%" stop-color="#f04040"/><stop offset="65%" stop-color="#d90000"/><stop offset="100%" stop-color="#b00000"/></radialGradient>${FR.replace('__ID__','frsf')}</defs><g filter="url(#frsf)"><path d="M0-41Q10-35 17-18Q34-17 44-9Q40 5 27 14Q32 33 27 42Q14 41 0 33Q-14 41-27 42Q-32 33-27 14Q-40 5-44-9Q-34-17-17-18Q-10-35 0-41Z" fill="url(#sf)"/><path d="M0-41Q-10-35-17-18Q-34-17-44-9Q-40 5-27 14L0 0Z" fill="rgba(255,255,255,.20)"/><ellipse cx="-12" cy="-15" rx="7" ry="9" fill="rgba(255,255,255,.28)" transform="rotate(-20 -12 -15)"/></g></svg>`,
+starfish: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="sf" cx="35%" cy="30%"><stop offset="0%" stop-color="#ff6858"/><stop offset="65%" stop-color="#ff392b"/><stop offset="100%" stop-color="#d02018"/></radialGradient>${FR.replace('__ID__','frsf')}</defs><g filter="url(#frsf)"><path d="M0-41Q10-35 17-18Q34-17 44-9Q40 5 27 14Q32 33 27 42Q14 41 0 33Q-14 41-27 42Q-32 33-27 14Q-40 5-44-9Q-34-17-17-18Q-10-35 0-41Z" fill="url(#sf)"/><path d="M0-41Q-10-35-17-18Q-34-17-44-9Q-40 5-27 14L0 0Z" fill="rgba(255,255,255,.20)"/><ellipse cx="-12" cy="-15" rx="7" ry="9" fill="rgba(255,255,255,.28)" transform="rotate(-20 -12 -15)"/></g></svg>`,
 
 turtle: `<svg viewBox="-50 -50 100 100"><defs><radialGradient id="tu" cx="35%" cy="30%"><stop offset="0%" stop-color="#40c840"/><stop offset="65%" stop-color="#03ad03"/><stop offset="100%" stop-color="#028a02"/></radialGradient>${FR.replace('__ID__','frtu')}</defs><g filter="url(#frtu)"><ellipse cx="0" cy="-30" rx="9" ry="11" fill="#028a02"/><ellipse cx="-36" cy="-5" rx="11" ry="8" fill="#028a02" transform="rotate(-25 -36 -5)"/><ellipse cx="36" cy="-5" rx="11" ry="8" fill="#028a02" transform="rotate(25 36 -5)"/><ellipse cx="-28" cy="32" rx="9" ry="8" fill="#028a02" transform="rotate(35 -28 32)"/><ellipse cx="28" cy="32" rx="9" ry="8" fill="#028a02" transform="rotate(-35 28 32)"/><ellipse cx="0" cy="5" rx="34" ry="29" fill="url(#tu)"/><ellipse cx="0" cy="5" rx="22" ry="18" fill="none" stroke="rgba(0,0,0,.1)" stroke-width="1.5"/><circle cx="-10" cy="-3" r="6" fill="rgba(0,0,0,.08)"/><circle cx="10" cy="-1" r="6" fill="rgba(0,0,0,.08)"/><circle cx="0" cy="12" r="6.5" fill="rgba(0,0,0,.08)"/><ellipse cx="-10" cy="-7" rx="6" ry="8" fill="rgba(255,255,255,.24)" transform="rotate(-15 -10 -7)"/><circle cx="-5" cy="-28" r="2.8" fill="#026502"/><circle cx="5" cy="-28" r="2.8" fill="#026502"/><circle cx="-4.5" cy="-28.5" r="1.1" fill="#fff" opacity=".5"/><circle cx="5.5" cy="-28.5" r="1.1" fill="#fff" opacity=".5"/></g></svg>`,
 
